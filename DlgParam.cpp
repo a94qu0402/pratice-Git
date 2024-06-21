@@ -14,6 +14,7 @@
 #define RGB_GRAY		RGB (85, 82, 85)
 #define RGB_BLACK		RGB	(0, 0, 0)
 #define RGB_RED			RGB(255, 0, 0)
+#define MIN_VALUE		 1e-9
 
 
 // DlgParam 對話方塊
@@ -150,6 +151,12 @@ BOOL CDlgParam::OnInitDialog()
 	// 根據 pithch 計算畫面分割幾個區塊
 	GetBlockCount();
 
+	// 刪除文件
+	DeletePathFile();
+
+	// 開啟文件
+	OpenFile();
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX 屬性頁應傳回 FALSE
 }
@@ -209,6 +216,12 @@ void CDlgParam::OnBnClickedButtonApply()
 	// 參數檢查
 	if(CheckParam())
 		Invalidate();	// 輸入參數合理的話更新畫面
+
+	// 刪除文件
+	DeletePathFile();
+
+	// 開啟文件
+	OpenFile();
 
 }
 
@@ -336,6 +349,8 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 
 	m_iIntersectSt = m_iEdgeKeepCnt - 1;
 	m_iIntersectEd = iArraySize - m_iEdgeKeepCnt;
+
+	//WriteCutPathInfo(iArraySize, dCutLength);		// 輸出文字檔案
 
 	return iArraySize;
 }
@@ -861,6 +876,8 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 				dotOffset.y += i * 2;
 					
 				pCtrlDC->Ellipse(dotOffset.x - iRadius, dotOffset.y - iRadius, dotOffset.x + iRadius, dotOffset.y + iRadius);
+
+				WriteCutPathInfo(-dCoorZ);// 輸出文字檔案
 			}
 		}
 		else 
@@ -870,6 +887,8 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 			pCtrlDC->Ellipse(dotCenter.x - iRadius, dotCenter.y - iRadius, dotCenter.x + iRadius, dotCenter.y + iRadius);
 		}
 	} while (GetNextCutPoint(&dCoorX, &dCoorZ));
+
+	m_file.Close();
 
 	// 恢復畫筆
 	pCtrlDC->SelectObject(pOldPen);
@@ -911,6 +930,43 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	return this;
 }
 
+void CDlgParam::WriteCutPathInfo(double dCoorZ)
+{
+	CString str;
+	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
+	double dRatio = (double)m_iRealCutSize / dCutLength;
+
+	str.Format(_T("ratio: %.3f(%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);
+
+	// 找到尾部
+	m_file.SeekToEnd();
+
+	// 寫入內容
+	m_file.Write(str, str.GetLength() * sizeof(TCHAR));
+}
+
+void CDlgParam::OpenFile()
+{
+	// 定義文件名
+	CString strFilename = _T("cut_path_info.txt");
+
+	if (!m_file.Open(strFilename, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
+	{
+		AfxMessageBox(_T("無法開啟文件: ") + strFilename);
+	}
+}
+
+void CDlgParam::DeletePathFile()
+{
+	// 定義文件名
+	CString strFilename = _T("cut_path_info.txt");
+
+	// 刪除文件
+	CFileStatus fileStatus;
+	if (CFile::GetStatus(strFilename, fileStatus))	// 如果文件存在需要做刪除
+		CFile::Remove(strFilename);
+}
+
 bool CDlgParam::IsValidZPitchRatio(double dZPitchRatio)
 {
 	if (dZPitchRatio < 1.0 || dZPitchRatio > 100.0)
@@ -945,11 +1001,15 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 	if (m_iCurPath == 0 && m_iRepeatPathCnt < m_iFirstPathCnt - 1)
 	{
 		m_iRepeatPathCnt++;
+
+		m_iRealCutSize = 1;
 	}
 	// 收刀重複執行
 	else if (m_iCurPath == m_iDataArraySize - 1 && m_iRepeatPathCnt < m_iLastPathCnt - 1)
 	{
 		m_iRepeatPathCnt++;
+
+		GetCutLayerWidth(*pCoorZ);
 	}
 	else// 其他刀
 	{
@@ -989,6 +1049,8 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 			bIntersect = !bIntersect;
 		}
+
+		m_iRealCutSize++;
 	}
 
 	*pCoorX = m_ayCoor[m_iCurPath];

@@ -105,6 +105,7 @@ public:
 	// 切割道相關
 	int m_iFirstSize;					// 紀錄第一高度的切割道數
 	int m_iDataArraySize;				// 當前高度的切割道數
+	int m_iRealCutSize;					// 實際切割道數目
 	int m_iCurPath;						// 當前在哪一個切割道
 	int m_iRepeatPathCnt;				// 當前切割道重複次數
 	int m_iIntersectSt;					// 開始進行交錯的 index
@@ -144,5 +145,11 @@ public:
 	bool CheckParam();					// 參數檢查合法性
 
 	CDlgParam* operator =(const CDlgParam &DlgParam);			// dlg '='
+
+	// 輸出文字檔案
+	CFile  m_file;
+	void WriteCutPathInfo(double dCoorZ);
+	void OpenFile();
+	void DeletePathFile();
 	
 };
