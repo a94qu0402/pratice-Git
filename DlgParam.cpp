@@ -338,8 +338,6 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 		if (i == 0 || i == (iArraySize - 2)) 
 		{
 			dXCur += (IsDoubleEqual(dGap, 0.0) ? dPitch : dGap / 2);
-
-			
 		}
 		else 
 		{
@@ -350,9 +348,31 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 	m_iIntersectSt = m_iEdgeKeepCnt - 1;
 	m_iIntersectEd = iArraySize - m_iEdgeKeepCnt;
 
-	//WriteCutPathInfo(iArraySize, dCutLength);		// 輸出文字檔案
-
 	return iArraySize;
+}
+
+int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
+{
+	double dTolerance = pow(10, -m_iDigits);
+	double dNewLayerW = GetCutLayerWidth(m_dLastCoorZ) - 2 * m_iEdgeKeepCnt * m_dCuttingSpacing; 
+	dNewLayerW = -ayResult[m_iEdgeKeepCnt - 1] * 2;// 需要交錯的 path
+	double dPitch = m_dCuttingSpacing * 1.5;
+
+	// 計算切道數
+	int iArraySize = static_cast<int>((dNewLayerW / dPitch) + dTolerance);
+
+	//iArraySize -= 1;	// 植樹問題，切道數 = 間隔數 - 1 (因為頭尾不打)
+
+	double dXCur = ayResult[m_iEdgeKeepCnt - 1];
+
+	for (int i = 0; i < iArraySize; i++)
+	{	
+		dXCur += dPitch;
+
+		ayResult[m_iEdgeKeepCnt + i] = dXCur;
+	}
+
+	return iArraySize + m_iEdgeKeepCnt;
 }
 
 double CDlgParam::GetLayerHeight()
@@ -987,6 +1007,19 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 
 	m_iCurPath = 0;
 
+	// 處理交錯
+	if (m_bIntersect)
+	{
+		m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
+
+		for (int i = 0; i < m_iEdgeKeepCnt; i++)
+		{
+			m_ayCoor[m_iDataArraySize + i] = -m_ayCoor[i];
+		}
+
+		m_iDataArraySize += 2;
+	}
+
 	*pCoorX = m_ayCoor[m_iCurPath];
 	*pCoorZ = -m_dLastCoorZ;
 
@@ -1029,6 +1062,19 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 			m_iCurPath = 0;
 
+			// 處理交錯
+			if (m_bIntersect)
+			{
+				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
+
+				for (int i = 0; i < m_iEdgeKeepCnt; i++)
+				{
+					m_ayCoor[m_iDataArraySize + i] = -m_ayCoor[i];
+				}
+
+				m_iDataArraySize += 2;
+			}
+
 			if (m_bReverse)
 			{
 				for (int i = 0; i < m_iDataArraySize / 2; ++i)
@@ -1040,15 +1086,7 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			}
 		}
 
-		// 處理交錯
-		if ((m_bIntersect) &&
-			(m_iCurPath > m_iIntersectSt && m_iCurPath < m_iIntersectEd))
-		{
-			if (bIntersect)
-				m_iCurPath++;
-
-			bIntersect = !bIntersect;
-		}
+		
 
 		m_iRealCutSize++;
 	}

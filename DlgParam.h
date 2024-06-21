@@ -117,6 +117,7 @@ public:
 	bool   GetFirstCutPoint (double* pCoorX, double* pCoorZ);	// 計算首切割道的 x,y 座標
 	bool   GetNextCutPoint (double* pCoorX, double* pCoorZ);	// 計算下一個切割道的 x,y 座標
 	int    GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize);	// 計算當前高度的 ArraySize
+	int	   GenIntersectLayerCutPath(double ayResult[], int iMaxSize); //  計算當前高度的 ArraySize(有交錯)
 	double GetLayerHeight();									// 回傳考慮比率後的 LayerHeight
 
 	// 數學計算
