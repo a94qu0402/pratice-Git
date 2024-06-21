@@ -16,6 +16,7 @@
 #define IDC_STATIC_EDGE_KEEP_CT         1006
 #define IDC_STATIC_EDGE_KEEP_CNT        1006
 #define IDC_STATIC_EDGE_KEEP_CNT2       1007
+#define IDC_STATIC_INTERSECT_RATIO      1008
 #define IDC_EDIT2                       1011
 #define IDC_EDIT_Z_PITCH_RATIO_10       1011
 #define IDC_EDIT3                       1012
@@ -60,6 +61,8 @@
 #define IDC_EDIT_LAST_PATH_CNT          1056
 #define IDC_EDIT__EDGE_KEEP_CNT         1057
 #define IDC_EDIT_EDGE_KEEP_CNT          1057
+#define IDC_EDIT_EDGE_KEEP_CNT2         1058
+#define IDC_EDIT_INTERSECT_RATIO        1058
 #define IDC_EDIT_LAST_PATH_CNT2         1059
 #define IDC_EDIT_IDIGITS                1059
 #define IDC_EDIT36                      1060

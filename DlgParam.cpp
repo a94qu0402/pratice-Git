@@ -54,6 +54,7 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 	, m_iEdgeKeepCnt(1)
 	, m_iDigits(6)
 	, m_bIntersect(FALSE)
+	, m_dIntersectRatio(0)
 {
 	m_iCurPath = 0;
 
@@ -108,7 +109,8 @@ void CDlgParam::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_LOWER_WIDTH, m_editLowerW);
 	DDX_Control(pDX, IDC_EDIT_FIRST_PATH_CNT, m_editFirstPathCnt);
 	DDX_Control(pDX, IDC_EDIT_LAST_PATH_CNT, m_editLastPathCnt);
-	
+
+	DDX_Text(pDX, IDC_EDIT_INTERSECT_RATIO, m_dIntersectRatio);
 }
 
 
@@ -354,16 +356,14 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
 	double dTolerance = pow(10, -m_iDigits);
-	double dNewLayerW = GetCutLayerWidth(m_dLastCoorZ) - 2 * m_iEdgeKeepCnt * m_dCuttingSpacing; 
-	dNewLayerW = -ayResult[m_iEdgeKeepCnt - 1] * 2;// 需要交錯的 path
-	double dPitch = m_dCuttingSpacing * 1.5;
+	double dNewLayerW = -ayResult[m_iEdgeKeepCnt - 1] * 2;	// 需要交錯的 path
+	double dPitch = m_dCuttingSpacing * (m_dIntersectRatio + 1);	// 增量 x * 交錯比
 
-	// 計算切道數
-	int iArraySize = static_cast<int>((dNewLayerW / dPitch) + dTolerance);
+	int iArraySize = (int)((dNewLayerW / dPitch) + dTolerance);// 計算切道數
 
-	//iArraySize -= 1;	// 植樹問題，切道數 = 間隔數 - 1 (因為頭尾不打)
+	iArraySize -= 1;	// 植樹問題，切道數 = 間隔數 - 1 (因為頭尾不打)
 
-	double dXCur = ayResult[m_iEdgeKeepCnt - 1];
+	double dXCur = ayResult[m_iEdgeKeepCnt - 1]; // 從邊緣保留開始
 
 	for (int i = 0; i < iArraySize; i++)
 	{	
@@ -551,6 +551,9 @@ void CDlgParam::WriteINI()
 
 	strValue.Format(_T("%d"), m_bIntersect);
 	WritePrivateProfileString(_T("ENV"), _T("Intersect"), strValue, strINIPath);
+
+	strValue.Format(_T("%f"), m_dIntersectRatio);
+	WritePrivateProfileString(_T("ENV"), _T("IntersectRatio"), strValue, strINIPath);
 }
 
 void CDlgParam::ReadINT()
@@ -655,6 +658,9 @@ void CDlgParam::ReadINT()
 
 	GetPrivateProfileString(_T("ENV"), _T("Intersect"), _T("0"), szBuf, _countof(szBuf), strINIPath);
 	m_bIntersect = _ttoi(szBuf);
+
+	GetPrivateProfileString(_T("ENV"), _T("IntersectRatio"), _T("1"), szBuf, _countof(szBuf), strINIPath);
+	m_dIntersectRatio = _tstof(szBuf);
 }
 
 bool CDlgParam::CheckParam()
@@ -946,6 +952,7 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	m_dZPitchRatio90 = DlgParam.m_dZPitchRatio90;
 	m_dZPitchRatio95 = DlgParam.m_dZPitchRatio95;
 	m_dZPitchRatio100 = DlgParam.m_dZPitchRatio100;
+	m_dIntersectRatio = DlgParam.m_dIntersectRatio;
 	
 	return this;
 }
@@ -956,7 +963,7 @@ void CDlgParam::WriteCutPathInfo(double dCoorZ)
 	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
 	double dRatio = (double)m_iRealCutSize / dCutLength;
 
-	str.Format(_T("ratio: %.3f(%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);
+	str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);
 
 	// 找到尾部
 	m_file.SeekToEnd();
@@ -1063,16 +1070,17 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			m_iCurPath = 0;
 
 			// 處理交錯
-			if (m_bIntersect)
+			if (m_bIntersect && m_iDataArraySize != m_iEdgeKeepCnt * 2)	// 如果切割道數 == 邊緣保留數目, 不用做交錯
 			{
 				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
 
 				for (int i = 0; i < m_iEdgeKeepCnt; i++)
 				{
-					m_ayCoor[m_iDataArraySize + i] = -m_ayCoor[i];
+					m_ayCoor[m_iDataArraySize + i] = -m_ayCoor[i]; // 補上最後的邊緣保留
 				}
 
-				m_iDataArraySize += 2;
+				
+				m_iDataArraySize += 2;	 // 補上最後的邊緣保留
 			}
 
 			if (m_bReverse)

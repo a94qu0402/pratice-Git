@@ -51,11 +51,13 @@ public:
     double m_dUpperWidth;				// 上開口寬度			
     double m_dLowerWidth;				// 下開口寬度
     double m_dMaxWidth;					// 開口寬度
+	double m_dIntersectRatio;			// 交錯比
 
 	int m_iFirstPathCnt;				// 首道切割道重複次數
 	int m_iLastPathCnt;					// 末道切割道重複次數
 	int m_iEdgeKeepCnt;					// 邊緣保留次數
 	int m_iDigits;						// 小數點末幾位
+
 
 	// 深度 Z 比率
 	double m_dZPitchRatio5;				// 深度 Z 5%			
@@ -152,5 +154,6 @@ public:
 	void WriteCutPathInfo(double dCoorZ);
 	void OpenFile();
 	void DeletePathFile();
+	
 	
 };
