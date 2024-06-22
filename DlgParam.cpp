@@ -303,12 +303,9 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 	}
 
 	double dGap = dCutLength - iArraySize * dPitch;
-	if (dGap > dTolerance)
-	{
-		// 偵測出殘量，殘量要分配兩端，所以頭尾要各加一點
+
+	if (dGap > dTolerance)	// 偵測出殘量，殘量要分配兩端，所以頭尾要各加一點
 		iArraySize += 3;
-		dGap = dCutLength - (iArraySize - 3) * dPitch;
-	}
 	else
 		iArraySize += 1;	// 植樹問題，切道數 = 間隔數 + 1 
 
@@ -355,24 +352,97 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
+	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);  // 切口寬度
 	double dTolerance = pow(10, -m_iDigits);
-	double dNewLayerW = -ayResult[m_iEdgeKeepCnt - 1] * 2;	// 需要交錯的 path
-	double dPitch = m_dCuttingSpacing * (m_dIntersectRatio + 1);	// 增量 x * 交錯比
 
-	int iArraySize = (int)((dNewLayerW / dPitch) + dTolerance);// 計算切道數
+	// 計算切道數
+	int iArraySize = static_cast<int>((dCutLength / m_dCuttingSpacing) + dTolerance);
 
-	iArraySize -= 1;	// 植樹問題，切道數 = 間隔數 - 1 (因為頭尾不打)
+	if (iArraySize == 0)
+	{
+		// 特例，切口寬度 < 增量 x ; 只取頭尾兩切割道
+		ayResult[0] = -0.5 * dCutLength;
+		ayResult[1] = 0.5 * dCutLength;
 
-	double dXCur = ayResult[m_iEdgeKeepCnt - 1]; // 從邊緣保留開始
-
-	for (int i = 0; i < iArraySize; i++)
-	{	
-		dXCur += dPitch;
-
-		ayResult[m_iEdgeKeepCnt + i] = dXCur;
+		return 2;
 	}
 
-	return iArraySize + m_iEdgeKeepCnt;
+	double dGap = dCutLength - iArraySize * m_dCuttingSpacing;	// 計算未考慮交錯的 gap
+
+	if (dGap > dTolerance)	// 偵測出殘量，殘量要分配兩端，所以頭尾要各加一點
+		iArraySize += 3;
+	else
+		iArraySize += 1;	// 植樹問題，切道數 = 間隔數 + 1 
+
+	if (IsDoubleEqual(dCutLength, m_dUpperWidth) == true)
+	{
+		m_iFirstSize = iArraySize;
+	}
+	else {
+		// 與上層間的切割道數差,必須是 0 或 2！
+		while ((m_iFirstSize - iArraySize) % 2 != 0)
+		{
+			iArraySize--;
+
+			dGap += m_dCuttingSpacing;
+
+			if (IsDoubleEqual(dGap, m_dCuttingSpacing))
+			{
+				iArraySize += 2;
+			}
+		}
+	}
+
+	// 計算交錯的部分的切道寬度 = 切到寬度 - 不交錯的部分
+	double dNoIntersect, dIntersect;
+
+	if (m_iEdgeKeepCnt > 1 ) // 邊緣保留 > 1 才需要考量
+	{
+		if (!IsDoubleEqual(dGap, 0.0))	// 有 gap
+		{
+			dNoIntersect = dGap + ((m_iEdgeKeepCnt - 2) * m_dCuttingSpacing) * 2;
+		}
+		else
+			dNoIntersect = ((m_iEdgeKeepCnt - 1) * m_dCuttingSpacing) * 2;
+
+		dIntersect = dCutLength - dNoIntersect;		
+	}
+
+	double dPitch = m_dCuttingSpacing * (m_dIntersectRatio + 1);	// 交錯後的增量 x = 增量 x * 交錯比
+
+	iArraySize = (int)((dIntersect / dPitch) + dTolerance);			// 計算有交錯部分的切道數
+
+	double dIntersectGap = dIntersect - iArraySize * dPitch;		// 計算交錯的 gap
+
+	dIntersectGap /= iArraySize;									// 每個交錯切割 path 需要分擔部分的 gap
+
+	iArraySize -= 1;												// 頭尾不打
+
+	dPitch += dIntersectGap;										// pitch 加上需要分擔的 gap
+
+	iArraySize += m_iEdgeKeepCnt * 2;								// 交錯部分的切道數 + 邊緣保留的切道數
+
+	double dXCur = -dCutLength / 2;
+
+	for (int i = 0; i < iArraySize; i++)
+	{
+		ayResult[i] = dXCur;
+
+		if (i == 0 || i == (iArraySize - 2))						// 首道和末道需要考量 dGap
+		{
+			dXCur += (IsDoubleEqual(dGap, 0.0) ? m_dCuttingSpacing : dGap / 2);
+		}
+		else if (i < m_iEdgeKeepCnt-1 || i >= iArraySize - m_iEdgeKeepCnt)	// 邊緣保留的切割道
+		{
+			dXCur += m_dCuttingSpacing;
+		}
+		else                                                        // 交錯的切割道
+		{
+			dXCur += dPitch ;
+		}
+	}
+
+	return iArraySize;
 }
 
 double CDlgParam::GetLayerHeight()
@@ -1010,22 +1080,17 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 	m_bReverse = false;
 	m_iRepeatPathCnt = 0;
 	m_dLastCoorZ = 0.0;
-	m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
+	
 
 	m_iCurPath = 0;
 
 	// 處理交錯
-	if (m_bIntersect)
+	if (m_bIntersect && m_iDataArraySize != m_iEdgeKeepCnt * 2)	// 如果切割道數 == 邊緣保留數目, 不用做交錯
 	{
 		m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
-
-		for (int i = 0; i < m_iEdgeKeepCnt; i++)
-		{
-			m_ayCoor[m_iDataArraySize + i] = -m_ayCoor[i];
-		}
-
-		m_iDataArraySize += 2;
 	}
+	else
+		m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
 
 	*pCoorX = m_ayCoor[m_iCurPath];
 	*pCoorZ = -m_dLastCoorZ;
@@ -1065,23 +1130,15 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			if (m_dLastCoorZ > m_dZDepth && !IsDoubleEqual(m_dLastCoorZ, m_dZDepth))	// 已經到底了，結束判斷
 				return false;
 
-			m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
-
 			m_iCurPath = 0;
 
 			// 處理交錯
-			if (m_bIntersect && m_iDataArraySize != m_iEdgeKeepCnt * 2)	// 如果切割道數 == 邊緣保留數目, 不用做交錯
+			if (m_bIntersect )	
 			{
 				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
-
-				for (int i = 0; i < m_iEdgeKeepCnt; i++)
-				{
-					m_ayCoor[m_iDataArraySize + i] = -m_ayCoor[i]; // 補上最後的邊緣保留
-				}
-
-				
-				m_iDataArraySize += 2;	 // 補上最後的邊緣保留
 			}
+			else
+				m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
 
 			if (m_bReverse)
 			{
