@@ -17,6 +17,9 @@
 #define IDC_STATIC_EDGE_KEEP_CNT        1006
 #define IDC_STATIC_EDGE_KEEP_CNT2       1007
 #define IDC_STATIC_INTERSECT_RATIO      1008
+#define IDC_PICTURE_INTERSECT_RATIO     1009
+#define IDC_BUTTON_GEN_DIA              1010
+#define IDC_BUTTON_GEN_GRAPTH           1010
 #define IDC_EDIT2                       1011
 #define IDC_EDIT_Z_PITCH_RATIO_10       1011
 #define IDC_EDIT3                       1012

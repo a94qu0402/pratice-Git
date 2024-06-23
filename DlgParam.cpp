@@ -5,6 +5,7 @@
 #include "CutPath.h"
 #include "DlgParam.h"
 #include "afxdialogex.h"
+#include <vector>
 
 
 #define RGB_WHITE		RGB (255, 255, 255)
@@ -62,7 +63,7 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 
 	m_bReverse = false;
 
-	ReadINT();
+	ReadINI();
 }
 
 CDlgParam::~CDlgParam()
@@ -119,6 +120,7 @@ BEGIN_MESSAGE_MAP(CDlgParam, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_APPLY, &CDlgParam::OnBnClickedButtonApply)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_CHECK_INTERSECT, &CDlgParam::OnBnClickedCheckIntersect)
+	ON_BN_CLICKED(IDC_BUTTON_GEN_GRAPTH, &CDlgParam::OnBnClickedButtonGenGrapth)
 END_MESSAGE_MAP()
 
 
@@ -129,17 +131,29 @@ BOOL CDlgParam::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	CWnd* pPictureCtrl = GetDlgItem(IDC_PICTURE_PAINTINGAREA);
-
-	ReadINT();
+	ReadINI();
 
 	UpdateData(FALSE);
+
+	CWnd* pPictureCtrl = GetDlgItem(IDC_PICTURE_PAINTINGAREA);
+	CWnd* pGrapthCtrl = GetDlgItem(IDC_PICTURE_INTERSECT_RATIO);
 
 	// 獲得客戶區域大小
 	CRect rectClient;
 	pPictureCtrl->GetClientRect(&rectClient);
 	m_iClientW = rectClient.Width();
 	m_iClientH = rectClient.Height();
+
+	// 獲得圖表區域大小
+	CRect rectGrapth;
+	pGrapthCtrl->GetClientRect(&rectGrapth);
+	m_iGrapthH = rectGrapth.Width();
+	m_iGrapthW = rectGrapth.Height();
+
+	// 計算圖表區域(上下左右各預留 5 %)
+	int iReserve = m_iGrapthH * 0.1;
+	m_iGrapthH -= iReserve;
+	m_iGrapthW -= iReserve;
 
 	// 計算預留區域(上下左右各預留 5 %)
 	GetReservedRect();	
@@ -624,7 +638,7 @@ void CDlgParam::WriteINI()
 	WritePrivateProfileString(_T("ENV"), _T("IntersectRatio"), strValue, strINIPath);
 }
 
-void CDlgParam::ReadINT()
+void CDlgParam::ReadINI()
 {
 	// 獲得程式所在路徑
 	TCHAR szPath[MAX_PATH];
@@ -1032,8 +1046,8 @@ void CDlgParam::SaveIntersectRatio(double dCoorZ)
 	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
 	double dRatio = (double)m_iRealCutSize / dCutLength;
 
-	/*str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);*/
-	str.Format(_T("%.3f\n"), dRatio);
+	str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);
+	/*str.Format(_T("%.3f\n"), dRatio);*/
 
 	// 找到尾部
 	m_file.SeekToEnd();
@@ -1127,8 +1141,6 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 	else if (m_iCurPath == m_iDataArraySize - 1 && m_iRepeatPathCnt < m_iLastPathCnt - 1)
 	{
 		m_iRepeatPathCnt++;
-
-		GetCutLayerWidth(*pCoorZ);
 	}
 	else// 其他刀
 	{
@@ -1170,4 +1182,40 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 	*pCoorZ = -m_dLastCoorZ;
 
 	return true;
+}
+
+void CDlgParam::OnBnClickedButtonGenGrapth()
+{
+	bool bFirstTime = true;	// 第一次進入需要 GetFirstCutPath
+	double dCoorX, dCoorZ;
+
+	int iSize = (int)(m_dZDepth / m_dLayerHeight);
+
+	std::vector<double> arrNoIntersect;
+	std::vector<double> arrIntersect;
+
+	// 不交錯版本
+	int i = -1;
+	do 
+	{
+		if (bFirstTime) 
+		{
+
+			GetFirstCutPoint(&dCoorX, &dCoorZ);
+			bFirstTime = false;
+		}
+
+		if (m_iCurPath == m_iDataArraySize - 1) 
+		{
+		
+			double dCutLength = GetCutLayerWidth(-dCoorZ) + MIN_VALUE;
+			double dRatio = (double)(m_iRealCutSize) / dCutLength;
+
+			arrNoIntersect.push_back(dRatio);
+		}
+		
+
+	} while (GetNextCutPoint(&dCoorX, &dCoorZ));
+
+	// 交錯版本
 }
