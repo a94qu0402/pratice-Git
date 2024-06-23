@@ -149,11 +149,11 @@ public:
 
 	CDlgParam* operator =(const CDlgParam &DlgParam);			// dlg '='
 
-	// 輸出文字檔案
+	// 檔案 - 有關 Intersect
 	CFile  m_file;
-	void WriteCutPathInfo(double dCoorZ);
-	void OpenFile();
-	void DeletePathFile();
+	void SaveIntersectRatio(double dCoorZ);
+	void OpenIntersectRatio();
+	void DeleteIntersectRatio();
 	
 	
 };

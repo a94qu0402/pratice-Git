@@ -154,10 +154,10 @@ BOOL CDlgParam::OnInitDialog()
 	GetBlockCount();
 
 	// 刪除文件
-	DeletePathFile();
+	DeleteIntersectRatio();
 
 	// 開啟文件
-	OpenFile();
+	OpenIntersectRatio();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX 屬性頁應傳回 FALSE
@@ -220,10 +220,10 @@ void CDlgParam::OnBnClickedButtonApply()
 		Invalidate();	// 輸入參數合理的話更新畫面
 
 	// 刪除文件
-	DeletePathFile();
+	DeleteIntersectRatio();
 
 	// 開啟文件
-	OpenFile();
+	OpenIntersectRatio();
 
 }
 
@@ -352,6 +352,9 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
+	/*if (m_dLastCoorZ == 10.747999999999966)
+		AfxMessageBox(_T("asd"));*/
+
 	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);  // 切口寬度
 	double dTolerance = pow(10, -m_iDigits);
 
@@ -399,9 +402,7 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	if (m_iEdgeKeepCnt > 1 ) // 邊緣保留 > 1 才需要考量
 	{
 		if (!IsDoubleEqual(dGap, 0.0))	// 有 gap
-		{
 			dNoIntersect = dGap + ((m_iEdgeKeepCnt - 2) * m_dCuttingSpacing) * 2;
-		}
 		else
 			dNoIntersect = ((m_iEdgeKeepCnt - 1) * m_dCuttingSpacing) * 2;
 
@@ -409,6 +410,9 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	}
 
 	double dPitch = m_dCuttingSpacing * (m_dIntersectRatio + 1);	// 交錯後的增量 x = 增量 x * 交錯比
+
+	if (dPitch > dIntersect)										// 交錯比後的增量 x 若大於切口寬度需要調整
+		dPitch = m_dCuttingSpacing;
 
 	iArraySize = (int)((dIntersect / dPitch) + dTolerance);			// 計算有交錯部分的切道數
 
@@ -428,18 +432,12 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	{
 		ayResult[i] = dXCur;
 
-		if (i == 0 || i == (iArraySize - 2))						// 首道和末道需要考量 dGap
-		{
+		if (i == 0 || i == (iArraySize - 2))									// 首道和末道需要考量 dGap
 			dXCur += (IsDoubleEqual(dGap, 0.0) ? m_dCuttingSpacing : dGap / 2);
-		}
-		else if (i < m_iEdgeKeepCnt-1 || i >= iArraySize - m_iEdgeKeepCnt)	// 邊緣保留的切割道
-		{
+		else if (i < m_iEdgeKeepCnt-1 || i >= iArraySize - m_iEdgeKeepCnt)		// 邊緣保留的切割道
 			dXCur += m_dCuttingSpacing;
-		}
-		else                                                        // 交錯的切割道
-		{
+		else																	// 交錯的
 			dXCur += dPitch ;
-		}
 	}
 
 	return iArraySize;
@@ -639,31 +637,31 @@ void CDlgParam::ReadINT()
 	_TCHAR szBuf[MAX_PATH] = _T("");
 
 	// 讀取
- 	GetPrivateProfileString(_T("ENV"), _T("ZDepth"), _T("0.06"), szBuf, _countof(szBuf), strINIPath);
+ 	GetPrivateProfileString(_T("ENV"), _T("ZDepth"), _T("11"), szBuf, _countof(szBuf), strINIPath);
 	m_dZDepth = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("LayerHeight"), _T("0.01"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("LayerHeight"), _T("0.08"), szBuf, _countof(szBuf), strINIPath);
 	m_dLayerHeight = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("CuttingSpacing"), _T("0.001"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("CuttingSpacing"), _T("0.012"), szBuf, _countof(szBuf), strINIPath);
 	m_dCuttingSpacing = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("UpperWidth"), _T("0.0072"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("UpperWidth"), _T("0.42"), szBuf, _countof(szBuf), strINIPath);
 	m_dUpperWidth = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("LowerWidth"), _T("0.0036"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("LowerWidth"), _T("0.05"), szBuf, _countof(szBuf), strINIPath);
 	m_dLowerWidth = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("EdgeKeepCnt"), _T("1"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("EdgeKeepCnt"), _T("3"), szBuf, _countof(szBuf), strINIPath);
 	m_iEdgeKeepCnt = _ttoi(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("Digits"), _T("6"), szBuf, _countof(szBuf), strINIPath);
 	m_iDigits = _ttoi(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("FirstPathCnt"), _T("1"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("FirstPathCnt"), _T("2"), szBuf, _countof(szBuf), strINIPath);
 	m_iFirstPathCnt = _ttoi(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("LastPathCnt"), _T("1"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("LastPathCnt"), _T("3"), szBuf, _countof(szBuf), strINIPath);
 	m_iLastPathCnt = _ttoi(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio5"), _T("100"), szBuf, _countof(szBuf), strINIPath);
@@ -675,55 +673,55 @@ void CDlgParam::ReadINT()
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio15"), _T("100"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio15 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio20"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio20"), _T("95"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio20 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio25"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio25"), _T("95"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio25 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio30"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio30"), _T("90"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio30 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio35"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio35"), _T("90"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio35 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio40"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio40"), _T("85"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio40 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio45"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio45"), _T("85"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio45 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio50"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio50"), _T("80"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio50 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio55"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio55"), _T("80"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio55 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio60"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio60"), _T("70"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio60 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio65"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio65"), _T("70"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio65 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio70"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio70"), _T("60"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio70 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio75"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio75"), _T("60"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio75 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio80"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio80"), _T("50"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio80 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio85"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio85"), _T("50"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio85 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio90"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio90"), _T("40"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio90 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio95"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio95"), _T("40"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio95 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio100"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio100"), _T("30"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio100 = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("Intersect"), _T("0"), szBuf, _countof(szBuf), strINIPath);
@@ -973,7 +971,7 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 					
 				pCtrlDC->Ellipse(dotOffset.x - iRadius, dotOffset.y - iRadius, dotOffset.x + iRadius, dotOffset.y + iRadius);
 
-				WriteCutPathInfo(-dCoorZ);// 輸出文字檔案
+				SaveIntersectRatio(-dCoorZ);// 輸出文字檔案
 			}
 		}
 		else 
@@ -1027,13 +1025,15 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	return this;
 }
 
-void CDlgParam::WriteCutPathInfo(double dCoorZ)
+void CDlgParam::SaveIntersectRatio(double dCoorZ)
 {
+
 	CString str;
 	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
 	double dRatio = (double)m_iRealCutSize / dCutLength;
 
-	str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);
+	/*str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);*/
+	str.Format(_T("%.3f\n"), dRatio);
 
 	// 找到尾部
 	m_file.SeekToEnd();
@@ -1042,10 +1042,20 @@ void CDlgParam::WriteCutPathInfo(double dCoorZ)
 	m_file.Write(str, str.GetLength() * sizeof(TCHAR));
 }
 
-void CDlgParam::OpenFile()
+void CDlgParam::OpenIntersectRatio()
 {
-	// 定義文件名
-	CString strFilename = _T("cut_path_info.txt");
+	// 獲得程式所在路徑
+	TCHAR szPath[MAX_PATH];
+	GetModuleFileName(NULL, szPath, MAX_PATH);
+	PathRemoveFileSpec(szPath);
+
+	// 建立相對路徑下的 .txt
+	CString strFilename;
+	strFilename.Format(_T("%s\\Intersect_Ratio.txt"), szPath);
+
+
+	//// 定義文件名
+	//CString strFilename = _T("Intersect_Ratio.txt");
 
 	if (!m_file.Open(strFilename, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
 	{
@@ -1053,10 +1063,16 @@ void CDlgParam::OpenFile()
 	}
 }
 
-void CDlgParam::DeletePathFile()
+void CDlgParam::DeleteIntersectRatio()
 {
-	// 定義文件名
-	CString strFilename = _T("cut_path_info.txt");
+	// 獲得程式所在路徑
+	TCHAR szPath[MAX_PATH];
+	GetModuleFileName(NULL, szPath, MAX_PATH);
+	PathRemoveFileSpec(szPath);
+
+	// 建立相對路徑下的 .txt
+	CString strFilename;
+	strFilename.Format(_T("%s\\Intersect_Ratio.txt"), szPath);
 
 	// 刪除文件
 	CFileStatus fileStatus;
@@ -1085,10 +1101,8 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 	m_iCurPath = 0;
 
 	// 處理交錯
-	if (m_bIntersect && m_iDataArraySize != m_iEdgeKeepCnt * 2)	// 如果切割道數 == 邊緣保留數目, 不用做交錯
-	{
+	if (m_bIntersect)	
 		m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
-	}
 	else
 		m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
 
@@ -1134,9 +1148,7 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 			// 處理交錯
 			if (m_bIntersect )	
-			{
 				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
-			}
 			else
 				m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
 
@@ -1150,8 +1162,6 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 				}
 			}
 		}
-
-		
 
 		m_iRealCutSize++;
 	}
