@@ -104,10 +104,6 @@ public:
 	double m_dInflatHalfW;				// Inflat Bounding box Half Width
 	double m_dInflatH;					// Inflat Bounding box Height 
 
-	// 圖表區域相關
-	int m_iGrapthW;						// 圖表區域寬度
-	int m_iGrapthH;						// 圖表區域高度
-
 	// 切割道相關
 	int m_iFirstSize;					// 紀錄第一高度的切割道數
 	int m_iDataArraySize;				// 當前高度的切割道數
@@ -158,7 +154,4 @@ public:
 	void SaveIntersectRatio(double dCoorZ);
 	void OpenIntersectRatio();
 	void DeleteIntersectRatio();
-	
-	
-	afx_msg void OnBnClickedButtonGenGrapth();
 };

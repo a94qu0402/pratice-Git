@@ -120,7 +120,6 @@ BEGIN_MESSAGE_MAP(CDlgParam, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_APPLY, &CDlgParam::OnBnClickedButtonApply)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_CHECK_INTERSECT, &CDlgParam::OnBnClickedCheckIntersect)
-	ON_BN_CLICKED(IDC_BUTTON_GEN_GRAPTH, &CDlgParam::OnBnClickedButtonGenGrapth)
 END_MESSAGE_MAP()
 
 
@@ -143,17 +142,6 @@ BOOL CDlgParam::OnInitDialog()
 	pPictureCtrl->GetClientRect(&rectClient);
 	m_iClientW = rectClient.Width();
 	m_iClientH = rectClient.Height();
-
-	// 獲得圖表區域大小
-	CRect rectGrapth;
-	pGrapthCtrl->GetClientRect(&rectGrapth);
-	m_iGrapthH = rectGrapth.Width();
-	m_iGrapthW = rectGrapth.Height();
-
-	// 計算圖表區域(上下左右各預留 5 %)
-	int iReserve = m_iGrapthH * 0.1;
-	m_iGrapthH -= iReserve;
-	m_iGrapthW -= iReserve;
 
 	// 計算預留區域(上下左右各預留 5 %)
 	GetReservedRect();	
@@ -1184,38 +1172,3 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 	return true;
 }
 
-void CDlgParam::OnBnClickedButtonGenGrapth()
-{
-	bool bFirstTime = true;	// 第一次進入需要 GetFirstCutPath
-	double dCoorX, dCoorZ;
-
-	int iSize = (int)(m_dZDepth / m_dLayerHeight);
-
-	std::vector<double> arrNoIntersect;
-	std::vector<double> arrIntersect;
-
-	// 不交錯版本
-	int i = -1;
-	do 
-	{
-		if (bFirstTime) 
-		{
-
-			GetFirstCutPoint(&dCoorX, &dCoorZ);
-			bFirstTime = false;
-		}
-
-		if (m_iCurPath == m_iDataArraySize - 1) 
-		{
-		
-			double dCutLength = GetCutLayerWidth(-dCoorZ) + MIN_VALUE;
-			double dRatio = (double)(m_iRealCutSize) / dCutLength;
-
-			arrNoIntersect.push_back(dRatio);
-		}
-		
-
-	} while (GetNextCutPoint(&dCoorX, &dCoorZ));
-
-	// 交錯版本
-}
