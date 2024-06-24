@@ -58,7 +58,6 @@ public:
 	int m_iEdgeKeepCnt;					// 邊緣保留次數
 	int m_iDigits;						// 小數點末幾位
 
-
 	// 深度 Z 比率
 	double m_dZPitchRatio5;				// 深度 Z 5%			
 	double m_dZPitchRatio10;			// 深度 Z 10%
@@ -115,12 +114,12 @@ public:
 	bool m_bReverse;					// 切割道反序
 	
 	// 計算 cutpath
-	double GetCutLayerWidth(double dCoorZ);						// 計算切口寬度
-	bool   GetFirstCutPoint (double* pCoorX, double* pCoorZ);	// 計算首切割道的 x,y 座標
-	bool   GetNextCutPoint (double* pCoorX, double* pCoorZ);	// 計算下一個切割道的 x,y 座標
+	double GetCutLayerWidth(double dCoorZ);								// 計算切口寬度
+	bool   GetFirstCutPoint (double* pCoorX, double* pCoorZ);			// 計算首切割道的 x,y 座標
+	bool   GetNextCutPoint (double* pCoorX, double* pCoorZ);			// 計算下一個切割道的 x,y 座標
 	int    GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize);	// 計算當前高度的 ArraySize
-	int	   GenIntersectLayerCutPath(double ayResult[], int iMaxSize); //  計算當前高度的 ArraySize(有交錯)
-	double GetLayerHeight();									// 回傳考慮比率後的 LayerHeight
+	int	   GenIntersectLayerCutPath(double ayResult[], int iMaxSize);	//  計算當前高度的 ArraySize(有交錯)
+	double GetLayerHeight();											// 回傳考慮比率後的 LayerHeight
 
 	// 數學計算
 	bool IsDoubleEqual(double d1, double d2);					// 檢查 d1 是否等同 d2
@@ -150,8 +149,9 @@ public:
 	CDlgParam* operator =(const CDlgParam &DlgParam);			// dlg '='
 
 	// 檔案 - 有關 Intersect
-	CFile  m_file;
-	void SaveIntersectRatio(double dCoorZ);
+	double m_dPitch;							// 用於紀錄每一層的 pitch
+	CFile  m_fileIntersectRatio, m_fileCut;		
+	void SaveIntersectRatio(double dCoorZ);		
 	void OpenIntersectRatio();
 	void DeleteIntersectRatio();
 };

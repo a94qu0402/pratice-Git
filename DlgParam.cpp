@@ -110,7 +110,6 @@ void CDlgParam::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_LOWER_WIDTH, m_editLowerW);
 	DDX_Control(pDX, IDC_EDIT_FIRST_PATH_CNT, m_editFirstPathCnt);
 	DDX_Control(pDX, IDC_EDIT_LAST_PATH_CNT, m_editLastPathCnt);
-
 	DDX_Text(pDX, IDC_EDIT_INTERSECT_RATIO, m_dIntersectRatio);
 }
 
@@ -354,18 +353,14 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
-	/*if (m_dLastCoorZ == 10.747999999999966)
-		AfxMessageBox(_T("asd"));*/
-
 	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);  // 切口寬度
 	double dTolerance = pow(10, -m_iDigits);
 
-	// 計算切道數
-	int iArraySize = static_cast<int>((dCutLength / m_dCuttingSpacing) + dTolerance);
+	// 未交錯的部分，切割道間距為 m_dCuttingSpacing
+	int iArraySize = static_cast<int>((dCutLength / m_dCuttingSpacing) + dTolerance);	// 計算切道數
 
-	if (iArraySize == 0)
+	if (iArraySize == 0)	// 特例，切口寬度 < 增量 x ; 只取頭尾兩切割道
 	{
-		// 特例，切口寬度 < 增量 x ; 只取頭尾兩切割道
 		ayResult[0] = -0.5 * dCutLength;
 		ayResult[1] = 0.5 * dCutLength;
 
@@ -398,19 +393,17 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 		}
 	}
 
-	// 計算交錯的部分的切道寬度 = 切到寬度 - 不交錯的部分
-	double dNoIntersect, dIntersect;
 
-	if (m_iEdgeKeepCnt > 1 ) // 邊緣保留 > 1 才需要考量
-	{
-		if (!IsDoubleEqual(dGap, 0.0))	// 有 gap
-			dNoIntersect = dGap + ((m_iEdgeKeepCnt - 2) * m_dCuttingSpacing) * 2;
-		else
-			dNoIntersect = ((m_iEdgeKeepCnt - 1) * m_dCuttingSpacing) * 2;
+	//交錯的部分，切割道間距為 m_dCuttingSpacing * (m_dIntersectRatio + 1)
+	double dNoIntersect, dIntersect;	//無交錯, 交錯的切口寬度
 
-		dIntersect = dCutLength - dNoIntersect;		
-	}
+	if (!IsDoubleEqual(dGap, 0.0))		// 有 gap
+		dNoIntersect = dGap + ((m_iEdgeKeepCnt - 2) * m_dCuttingSpacing) * 2;
+	else
+		dNoIntersect = ((m_iEdgeKeepCnt - 1) * m_dCuttingSpacing) * 2;
 
+	dIntersect = dCutLength - dNoIntersect;							// 計算交錯的部分的切道寬度 = 切到寬度 - 不交錯的部分
+	
 	double dPitch = m_dCuttingSpacing * (m_dIntersectRatio + 1);	// 交錯後的增量 x = 增量 x * 交錯比
 
 	if (dPitch > dIntersect)										// 交錯比後的增量 x 若大於切口寬度需要調整
@@ -422,9 +415,12 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 
 	dIntersectGap /= iArraySize;									// 每個交錯切割 path 需要分擔部分的 gap
 
-	iArraySize -= 1;												// 頭尾不打
+	if(m_iEdgeKeepCnt != 1)
+		iArraySize -= 1;											// 頭尾不打
 
 	dPitch += dIntersectGap;										// pitch 加上需要分擔的 gap
+
+	m_dPitch = dPitch;
 
 	iArraySize += m_iEdgeKeepCnt * 2;								// 交錯部分的切道數 + 邊緣保留的切道數
 
@@ -434,11 +430,11 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	{
 		ayResult[i] = dXCur;
 
-		if (i == 0 || i == (iArraySize - 2))									// 首道和末道需要考量 dGap
+		if (i == 0 || i == (iArraySize - 2))									// 起刀和收刀的切割道  
 			dXCur += (IsDoubleEqual(dGap, 0.0) ? m_dCuttingSpacing : dGap / 2);
-		else if (i < m_iEdgeKeepCnt-1 || i >= iArraySize - m_iEdgeKeepCnt)		// 邊緣保留的切割道
+		else if (i < m_iEdgeKeepCnt-1 || i >= iArraySize - m_iEdgeKeepCnt)		// 邊緣保留的切割道 
 			dXCur += m_dCuttingSpacing;
-		else																	// 交錯的
+		else																	// 交錯的切割道
 			dXCur += dPitch ;
 	}
 
@@ -729,7 +725,7 @@ void CDlgParam::ReadINI()
 	GetPrivateProfileString(_T("ENV"), _T("Intersect"), _T("0"), szBuf, _countof(szBuf), strINIPath);
 	m_bIntersect = _ttoi(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("IntersectRatio"), _T("1"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("IntersectRatio"), _T("0.5"), szBuf, _countof(szBuf), strINIPath);
 	m_dIntersectRatio = _tstof(szBuf);
 }
 
@@ -984,7 +980,8 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 		}
 	} while (GetNextCutPoint(&dCoorX, &dCoorZ));
 
-	m_file.Close();
+	m_fileIntersectRatio.Close();
+	m_fileCut.Close();
 
 	// 恢復畫筆
 	pCtrlDC->SelectObject(pOldPen);
@@ -1029,7 +1026,6 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 
 void CDlgParam::SaveIntersectRatio(double dCoorZ)
 {
-
 	CString str;
 	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
 	double dRatio = (double)m_iRealCutSize / dCutLength;
@@ -1038,10 +1034,19 @@ void CDlgParam::SaveIntersectRatio(double dCoorZ)
 	/*str.Format(_T("%.3f\n"), dRatio);*/
 
 	// 找到尾部
-	m_file.SeekToEnd();
+	m_fileIntersectRatio.SeekToEnd();
 
 	// 寫入內容
-	m_file.Write(str, str.GetLength() * sizeof(TCHAR));
+	m_fileIntersectRatio.Write(str, str.GetLength() * sizeof(TCHAR));
+
+	
+	str.Format(_T("%.3f \n"), m_dPitch);
+
+	// 找到尾部
+	m_fileCut.SeekToEnd();
+
+	// 寫入內容
+	m_fileCut.Write(str, str.GetLength() * sizeof(TCHAR));
 }
 
 void CDlgParam::OpenIntersectRatio()
@@ -1051,17 +1056,23 @@ void CDlgParam::OpenIntersectRatio()
 	GetModuleFileName(NULL, szPath, MAX_PATH);
 	PathRemoveFileSpec(szPath);
 
-	// 建立相對路徑下的 .txt
+	// 建立相對路徑下的交錯比 .txt
 	CString strFilename;
 	strFilename.Format(_T("%s\\Intersect_Ratio.txt"), szPath);
 
+	// 建立相對路徑下的增量x .txt
+	CString strFilename2;
+	strFilename2.Format(_T("%s\\CuttingSpacing.txt"), szPath);
 
-	//// 定義文件名
-	//CString strFilename = _T("Intersect_Ratio.txt");
-
-	if (!m_file.Open(strFilename, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
+	
+	if (!m_fileIntersectRatio.Open(strFilename, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
 	{
 		AfxMessageBox(_T("無法開啟文件: ") + strFilename);
+	}
+
+	if (!m_fileCut.Open(strFilename2, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
+	{
+		AfxMessageBox(_T("無法開啟文件: ") + strFilename2);
 	}
 }
 
@@ -1076,10 +1087,17 @@ void CDlgParam::DeleteIntersectRatio()
 	CString strFilename;
 	strFilename.Format(_T("%s\\Intersect_Ratio.txt"), szPath);
 
+	// 建立相對路徑下的增量x .txt
+	CString strFilename2;
+	strFilename2.Format(_T("%s\\CuttingSpacing.txt"), szPath);
+
 	// 刪除文件
 	CFileStatus fileStatus;
-	if (CFile::GetStatus(strFilename, fileStatus))	// 如果文件存在需要做刪除
+	if (CFile::GetStatus(strFilename, fileStatus))	// 如果Intersect_Ratio文件存在需要做刪除
 		CFile::Remove(strFilename);
+
+	if (CFile::GetStatus(strFilename2, fileStatus))	// 如果CuttingSpacing文件存在需要做刪除
+		CFile::Remove(strFilename2);
 }
 
 bool CDlgParam::IsValidZPitchRatio(double dZPitchRatio)
@@ -1168,7 +1186,13 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 	*pCoorX = m_ayCoor[m_iCurPath];
 	*pCoorZ = -m_dLastCoorZ;
-
-	return true;
+		
+	/*double dCutSpacingDiff;
+	if (m_iCurPath >= 1)
+	{
+		dCutSpacingDiff = m_ayCoor[m_iCurPath] - m_ayCoor[m_iCurPath - 1];
+		SaveCutSpaceDiff(dCutSpacingDiff);
+	}
+	return true;*/
 }
 
