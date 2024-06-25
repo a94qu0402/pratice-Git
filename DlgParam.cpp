@@ -155,10 +155,10 @@ BOOL CDlgParam::OnInitDialog()
 	GetBlockCount();
 
 	// 刪除文件
-	DeleteIntersectRatio();
+	/*DeleteCutPathFile();*/
 
 	// 開啟文件
-	OpenIntersectRatio();
+	OpenCutPathFile();
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX 屬性頁應傳回 FALSE
@@ -202,8 +202,6 @@ void CDlgParam::OnBnClickedButtonApply()
 {
 	UpdateData(TRUE);
 
-	WriteINI();
-
 	// 計算預留區域(上下左右各預留 5 %)
 	GetReservedRect();
 
@@ -221,10 +219,12 @@ void CDlgParam::OnBnClickedButtonApply()
 		Invalidate();	// 輸入參數合理的話更新畫面
 
 	// 刪除文件
-	DeleteIntersectRatio();
+	/*DeleteCutPathFile();*/
 
 	// 開啟文件
-	OpenIntersectRatio();
+	OpenCutPathFile();
+
+	WriteINI();
 
 }
 
@@ -345,8 +345,12 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 		}
 	}
 
+	m_dPitch = dPitch;
+
 	m_iIntersectSt = m_iEdgeKeepCnt - 1;
 	m_iIntersectEd = iArraySize - m_iEdgeKeepCnt;
+
+	SaveCutPathFile((double)iArraySize / dCutLength);// 輸出文字檔案
 
 	return iArraySize;
 }
@@ -378,7 +382,8 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	{
 		m_iFirstSize = iArraySize;
 	}
-	else {
+	else 
+	{
 		// 與上層間的切割道數差,必須是 0 或 2！
 		while ((m_iFirstSize - iArraySize) % 2 != 0)
 		{
@@ -415,9 +420,8 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 
 	dIntersectGap /= iArraySize;									// 每個交錯切割 path 需要分擔部分的 gap
 
-	if(m_iEdgeKeepCnt != 1)
-		iArraySize -= 1;											// 頭尾不打
-
+	iArraySize -= 1;												// 頭尾不打
+	
 	dPitch += dIntersectGap;										// pitch 加上需要分擔的 gap
 
 	m_dPitch = dPitch;
@@ -437,6 +441,8 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 		else																	// 交錯的切割道
 			dXCur += dPitch ;
 	}
+
+	SaveCutPathFile((double)iArraySize / dCutLength);// 輸出文字檔案
 
 	return iArraySize;
 }
@@ -761,9 +767,12 @@ bool CDlgParam::CheckParam()
 	}
 
 	// 邊緣保留次數
-	if (m_iEdgeKeepCnt < 1)
+	if (m_bIntersect && m_iEdgeKeepCnt <= 1)
 	{
-		AfxMessageBox(_T("邊緣保留次數不能小於 1"));
+		AfxMessageBox(_T("邊緣保留次數不能小於 2"));
+
+		m_bIntersect = false;
+
 		return false;
 	}
 
@@ -969,8 +978,9 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 					
 				pCtrlDC->Ellipse(dotOffset.x - iRadius, dotOffset.y - iRadius, dotOffset.x + iRadius, dotOffset.y + iRadius);
 
-				SaveIntersectRatio(-dCoorZ);// 輸出文字檔案
+				
 			}
+			//SaveCutPathFile(-dCoorZ);// 輸出文字檔案
 		}
 		else 
 		{
@@ -1024,80 +1034,55 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	return this;
 }
 
-void CDlgParam::SaveIntersectRatio(double dCoorZ)
+void CDlgParam::SaveCutPathFile(double dCoorZ)
 {
 	CString str;
 	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
 	double dRatio = (double)m_iRealCutSize / dCutLength;
 
-	str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);
-	/*str.Format(_T("%.3f\n"), dRatio);*/
+	// 寫入每個高度的 dRatio
+	/*str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);*/
+	str.Format(_T("%.3f \n"), dCoorZ);
 
-	// 找到尾部
 	m_fileIntersectRatio.SeekToEnd();
 
-	// 寫入內容
 	m_fileIntersectRatio.Write(str, str.GetLength() * sizeof(TCHAR));
 
-	
+	// 寫入每個高度的 pitch
 	str.Format(_T("%.3f \n"), m_dPitch);
 
-	// 找到尾部
 	m_fileCut.SeekToEnd();
 
-	// 寫入內容
 	m_fileCut.Write(str, str.GetLength() * sizeof(TCHAR));
 }
 
-void CDlgParam::OpenIntersectRatio()
+void CDlgParam::OpenCutPathFile()
 {
-	// 獲得程式所在路徑
-	TCHAR szPath[MAX_PATH];
-	GetModuleFileName(NULL, szPath, MAX_PATH);
-	PathRemoveFileSpec(szPath);
+	CString strFilename = GetFilePath(_T("Intersect_Ratio.txt"));
+	CString strFilename2 = GetFilePath(_T("CuttingSpacing.txt"));
 
-	// 建立相對路徑下的交錯比 .txt
-	CString strFilename;
-	strFilename.Format(_T("%s\\Intersect_Ratio.txt"), szPath);
-
-	// 建立相對路徑下的增量x .txt
-	CString strFilename2;
-	strFilename2.Format(_T("%s\\CuttingSpacing.txt"), szPath);
-
-	
-	if (!m_fileIntersectRatio.Open(strFilename, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
-	{
-		AfxMessageBox(_T("無法開啟文件: ") + strFilename);
-	}
-
-	if (!m_fileCut.Open(strFilename2, CFile::modeWrite | CFile::modeNoTruncate | CFile::modeCreate))
-	{
-		AfxMessageBox(_T("無法開啟文件: ") + strFilename2);
-	}
+	OpenFile(m_fileIntersectRatio, strFilename);
+	OpenFile(m_fileCut, strFilename2);
 }
 
-void CDlgParam::DeleteIntersectRatio()
+
+CString CDlgParam::GetFilePath(const CString & filename)
 {
-	// 獲得程式所在路徑
 	TCHAR szPath[MAX_PATH];
 	GetModuleFileName(NULL, szPath, MAX_PATH);
 	PathRemoveFileSpec(szPath);
 
-	// 建立相對路徑下的 .txt
 	CString strFilename;
-	strFilename.Format(_T("%s\\Intersect_Ratio.txt"), szPath);
+	strFilename.Format(_T("%s\\%s"), szPath, filename);
+	return strFilename;
+}
 
-	// 建立相對路徑下的增量x .txt
-	CString strFilename2;
-	strFilename2.Format(_T("%s\\CuttingSpacing.txt"), szPath);
-
-	// 刪除文件
-	CFileStatus fileStatus;
-	if (CFile::GetStatus(strFilename, fileStatus))	// 如果Intersect_Ratio文件存在需要做刪除
-		CFile::Remove(strFilename);
-
-	if (CFile::GetStatus(strFilename2, fileStatus))	// 如果CuttingSpacing文件存在需要做刪除
-		CFile::Remove(strFilename2);
+void CDlgParam::OpenFile(CFile& file,const  CString& filename)
+{
+	if (!file.Open(filename, CFile::modeWrite | CFile::modeCreate))
+	{
+		AfxMessageBox(_T("無法開啟文件: ") + filename);
+	}
 }
 
 bool CDlgParam::IsValidZPitchRatio(double dZPitchRatio)
@@ -1165,7 +1150,7 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			m_iCurPath = 0;
 
 			// 處理交錯
-			if (m_bIntersect )	
+			if (m_bIntersect)	
 				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
 			else
 				m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
@@ -1186,13 +1171,5 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 	*pCoorX = m_ayCoor[m_iCurPath];
 	*pCoorZ = -m_dLastCoorZ;
-		
-	/*double dCutSpacingDiff;
-	if (m_iCurPath >= 1)
-	{
-		dCutSpacingDiff = m_ayCoor[m_iCurPath] - m_ayCoor[m_iCurPath - 1];
-		SaveCutSpaceDiff(dCutSpacingDiff);
-	}
-	return true;*/
 }
 

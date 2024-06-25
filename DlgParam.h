@@ -122,8 +122,8 @@ public:
 	double GetLayerHeight();											// 回傳考慮比率後的 LayerHeight
 
 	// 數學計算
-	bool IsDoubleEqual(double d1, double d2);					// 檢查 d1 是否等同 d2
-	bool IsValidZPitchRatio(double dZPitchRatio);				// 檢查 Z Pitch Ratio 合法性
+	bool IsDoubleEqual(double d1, double d2);							// 檢查 d1 是否等同 d2
+	bool IsValidZPitchRatio(double dZPitchRatio);						// 檢查 Z Pitch Ratio 合法性
 
 	// 座標轉換
 	void D2ISetUp(CPoint dotLT, double dCoorLT_X, double dCoorLT_Y, double dRatioX, double dRatioY);// 座標基底
@@ -146,12 +146,14 @@ public:
 	void ReadINI();						// 讀取 INI
 	bool CheckParam();					// 參數檢查合法性
 
-	CDlgParam* operator =(const CDlgParam &DlgParam);			// dlg '='
+	CDlgParam* operator =(const CDlgParam &DlgParam);	// dlg '='
 
 	// 檔案 - 有關 Intersect
-	double m_dPitch;							// 用於紀錄每一層的 pitch
+	double m_dPitch;									// 用於紀錄每一層的 pitch
 	CFile  m_fileIntersectRatio, m_fileCut;		
-	void SaveIntersectRatio(double dCoorZ);		
-	void OpenIntersectRatio();
-	void DeleteIntersectRatio();
+	void SaveCutPathFile(double dCoorZ);		
+	void OpenCutPathFile();
+
+	CString GetFilePath(const CString& filename);
+	void OpenFile(CFile& file, const CString& filename);
 };
