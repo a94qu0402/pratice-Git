@@ -133,6 +133,9 @@ BOOL CDlgParam::OnInitDialog()
 
 	UpdateData(FALSE);
 
+	// 設定 Z pitch ratio
+	SetZPitchRatio();
+
 	CWnd* pPictureCtrl = GetDlgItem(IDC_PICTURE_PAINTINGAREA);
 	CWnd* pGrapthCtrl = GetDlgItem(IDC_PICTURE_INTERSECT_RATIO);
 
@@ -153,9 +156,6 @@ BOOL CDlgParam::OnInitDialog()
 
 	// 根據 pithch 計算畫面分割幾個區塊
 	GetBlockCount();
-
-	// 刪除文件
-	/*DeleteCutPathFile();*/
 
 	// 開啟文件
 	OpenCutPathFile();
@@ -201,6 +201,9 @@ void CDlgParam::OnPaint()
 void CDlgParam::OnBnClickedButtonApply()
 {
 	UpdateData(TRUE);
+
+	// 設定 Z pitch ratio
+	SetZPitchRatio();
 
 	// 參數檢查
 	if(CheckParam())
@@ -323,26 +326,19 @@ void CDlgParam::OnBnClickedCheckIntersect()
 }
 
 /**
-* int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize)
-*
-* 功能說明:
-* 	生成普通層的切割路徑，根據給定的切口寬度和增量計算切割道數，並處理邊緣保留和間隔的邏輯。
-*
-* Input:
-* 	double dCoorZ: 當前層的Z座標。
-* 	double dPitch: 切割道的間距。
-* 	double ayResult[]: 用於儲存生成的切割路徑的數組。
-* 	int iMaxSize: 數組的最大尺寸。
-*
-* Output:
-* 	int: 返回生成的切割路徑數組的大小。
-*
-* Remark:
-* 	1. 根據切口寬度和增量計算切割道數。
-* 	2. 考慮殘量並調整切割道數，確保與上層間的切割道數差為0或2。
-* 	3. 生成完整的切割路徑數組，處理起刀、收刀和邊緣保留的邏輯。
-* 	4. 保存生成的切割路徑到檔案中。
-*/
+ * GenLayerCutPath - 生成指定層的切割路徑
+ *
+ * @param dCoorZ: 當前Z座標
+ * @param dPitch: 切割間距
+ * @param ayResult: 存放結果的陣列
+ * @param iMaxSize: 結果陣列的最大尺寸
+ *
+ * @return 生成的切割道數
+ *
+ * 此函數根據給定的Z座標和切割間距生成切割層的路徑。它首先計算需要的切割道數，
+ * 根據道數和切割寬度進行特例處理。如果寬度與上一層相等，會記錄初始大小。
+ * 函數會根據計算結果更新每個切割點的位置，並保存切割路徑到文件。
+ */
 int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize)
 {
 	double dTolerance = pow(10, -m_iDigits);
@@ -413,25 +409,17 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 }
 
 /**
-* int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
-*
-* 功能說明:
-* 	生成交錯層的切割路徑，根據切口寬度和交錯比計算切割道數，並處理邊緣保留和間隔的邏輯。
-*
-* Input:
-* 	double ayResult[]: 用於儲存生成的切割路徑的數組。
-* 	int iMaxSize: 數組的最大尺寸。
-*
-* Output:
-* 	int: 返回生成的切割路徑數組的大小。
-*
-* Remark:
-* 	1. 根據切口寬度和增量計算未交錯的切割道數。
-* 	2. 考慮殘量並調整切割道數，確保與上層間的切割道數差為0或2。
-* 	3. 計算交錯部分的切口寬度和間隔，並調整增量以符合切口寬度。
-* 	4. 生成完整的切割路徑數組，處理起刀、收刀和邊緣保留的邏輯。
-* 	5. 保存生成的切割路徑到檔案中。
-*/
+ * GenIntersectLayerCutPath - 生成交錯層的切割路徑
+ *
+ * @param ayResult: 存放結果的陣列
+ * @param iMaxSize: 結果陣列的最大尺寸
+ *
+ * @return 生成的切割道數
+ *
+ * 此函數根據最後一次切割的Z座標生成交錯層的切割路徑。它首先計算不交錯部分的切割道數，
+ * 根據道數和切割寬度進行特例處理。接著計算交錯部分的切割道數，並調整交錯的間距。
+ * 函數會根據計算結果更新每個切割點的位置，並保存切割路徑到文件。
+ */
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
 	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);		// 切口寬度
@@ -543,74 +531,34 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 */
 double CDlgParam::GetLayerHeight()
 {
-	int iPercentage = static_cast<int>((m_dLastCoorZ / m_dZDepth) * 100.0);
+	int iPercentage = int((m_dLastCoorZ / m_dZDepth) * 100.0);
 	iPercentage -= iPercentage % 5;
 
-	switch (iPercentage)
+	// 計算索引
+	int iIndex = iPercentage / 5;
+
+	if (iIndex >= 0 && iIndex < sizeof(m_ayZPitchRatio) / sizeof(m_ayZPitchRatio[0]))
+		return m_dLayerHeight * (m_ayZPitchRatio[iIndex] / 100.0);
+	else // 如果索引超出範圍，使用最後一個比例
+		return m_dLayerHeight * (m_dZPitchRatio100 / 100.0);
+}
+
+void CDlgParam::SetZPitchRatio()
+{
+	// 初始化 m_dZPitchRatio 數組
+	double dZPitchRatios[] = 
 	{
-	case 0:
-		return m_dLayerHeight * (m_dZPitchRatio5 / 100.);
-		break;
-	case 5:
-		return m_dLayerHeight * (m_dZPitchRatio10 / 100.);
-		break;
-	case 10:
-		return m_dLayerHeight * (m_dZPitchRatio15 / 100.);
-		break;
-	case 15:
-		return m_dLayerHeight * (m_dZPitchRatio20 / 100.);
-		break;
-	case 20:
-		return m_dLayerHeight * (m_dZPitchRatio25 / 100.);
-		break;
-	case 25:
-		return m_dLayerHeight * (m_dZPitchRatio30 / 100.);
-		break;
-	case 30:
-		return m_dLayerHeight * (m_dZPitchRatio35 / 100.);
-		break;
-	case 35:
-		return m_dLayerHeight * (m_dZPitchRatio40 / 100.);
-		break;
-	case 40:
-		return m_dLayerHeight * (m_dZPitchRatio45 / 100.);
-		break;
-	case 45:
-		return m_dLayerHeight * (m_dZPitchRatio50 / 100.);
-		break;
-	case 50:
-		return m_dLayerHeight * (m_dZPitchRatio55 / 100.);
-		break;
-	case 55:
-		return m_dLayerHeight * (m_dZPitchRatio60 / 100.);
-		break;
-	case 60:
-		return m_dLayerHeight * (m_dZPitchRatio65 / 100.);
-		break;
-	case 65:
-		return m_dLayerHeight * (m_dZPitchRatio70 / 100.);
-		break;
-	case 70:
-		return m_dLayerHeight * (m_dZPitchRatio75 / 100.);
-		break;
-	case 75:
-		return m_dLayerHeight * (m_dZPitchRatio80 / 100.);
-		break;
-	case 80:
-		return m_dLayerHeight * (m_dZPitchRatio85 / 100.);
-		break;
-	case 85:
-		return m_dLayerHeight * (m_dZPitchRatio90 / 100.);
-		break;
-	case 90:
-		return m_dLayerHeight * (m_dZPitchRatio95 / 100.);
-		break;
-	case 95:
-		return m_dLayerHeight * (m_dZPitchRatio100 / 100.);
-		break;
-	default:
-		return m_dLayerHeight * (m_dZPitchRatio100 / 100.);
-		break;
+		m_dZPitchRatio5, m_dZPitchRatio10, m_dZPitchRatio15, m_dZPitchRatio20,
+		m_dZPitchRatio25, m_dZPitchRatio30, m_dZPitchRatio35, m_dZPitchRatio40,
+		m_dZPitchRatio45, m_dZPitchRatio50, m_dZPitchRatio55, m_dZPitchRatio60,
+		m_dZPitchRatio65, m_dZPitchRatio70, m_dZPitchRatio75, m_dZPitchRatio80,
+		m_dZPitchRatio85, m_dZPitchRatio90, m_dZPitchRatio95, m_dZPitchRatio100
+	};
+
+	// 將臨時數組的值賦值給成員數組
+	for (int i = 0; i < NUM_Z_PITCH_RATIOS; ++i) 
+	{
+		m_ayZPitchRatio[i] = dZPitchRatios[i];
 	}
 }
 
@@ -871,26 +819,14 @@ bool CDlgParam::CheckParam()
 	}
 
 	// 深度比值不能小於 1 大於 100
-	IsValidZPitchRatio(m_dZPitchRatio5);
-	IsValidZPitchRatio(m_dZPitchRatio10);
-	IsValidZPitchRatio(m_dZPitchRatio15);
-	IsValidZPitchRatio(m_dZPitchRatio20);
-	IsValidZPitchRatio(m_dZPitchRatio25);
-	IsValidZPitchRatio(m_dZPitchRatio30);
-	IsValidZPitchRatio(m_dZPitchRatio35);
-	IsValidZPitchRatio(m_dZPitchRatio40);
-	IsValidZPitchRatio(m_dZPitchRatio45);
-	IsValidZPitchRatio(m_dZPitchRatio50);
-	IsValidZPitchRatio(m_dZPitchRatio55);
-	IsValidZPitchRatio(m_dZPitchRatio60);
-	IsValidZPitchRatio(m_dZPitchRatio65);
-	IsValidZPitchRatio(m_dZPitchRatio70);
-	IsValidZPitchRatio(m_dZPitchRatio75);
-	IsValidZPitchRatio(m_dZPitchRatio80);
-	IsValidZPitchRatio(m_dZPitchRatio85);
-	IsValidZPitchRatio(m_dZPitchRatio90);
-	IsValidZPitchRatio(m_dZPitchRatio95);
-	IsValidZPitchRatio(m_dZPitchRatio100);
+
+	for (double dRatio : m_ayZPitchRatio)
+	{
+		if (!IsValidZPitchRatio(dRatio))
+		{
+			return false; // 如果有一個值無效，返回 false
+		}
+	}
 
 	return true;
 }
@@ -1022,23 +958,14 @@ void CDlgParam::DrawGridLines(CDC* pCtrlDC)
 }
 
 /**
-* void CDlgParam::DrawCutPath(CDC* pCtrlDC)
-*
-* 功能說明:
-* 	繪製切割路徑，根據當前路徑的狀態，使用不同顏色的畫筆繪製切割點，包括起刀點、收刀點和一般點。
-*
-* Input:
-* 	CDC* pCtrlDC: 繪圖控制的DC指針，用於在指定的DC上進行繪製。
-*
-* Output:
-* 	無
-*
-* Remark:
-* 	1. 使用不同顏色的畫筆來標識起刀點（紫色）、收刀點（橘色）和一般點（藍色）。
-* 	2. 根據路徑的狀態，繪製圓點並進行適當的偏移處理。
-* 	3. 使用完畫筆後恢復原先的畫筆設置。
-* 	4. 需要進行多次迭代來取得所有的切割點並進行繪製。
-*/
+ * DrawCutPath - 繪製切割路徑
+ *
+ * @param pCtrlDC: 繪圖設備上下文指針
+ *
+ * 此函數在給定的繪圖設備上下文中繪製切割路徑。根據當前切割路徑的狀態選擇不同顏色的筆，
+ * 並在指定位置繪製圓點。函數會根據起始點和終點分別使用不同顏色，並在一般點使用藍色。
+ * 繪製完後，函數會關閉文件並恢復原來的畫筆。
+ */
 void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 {
 	CPen penBlue(PS_SOLID, 5, RGB(0, 0, 255));		// 藍色筆
@@ -1148,22 +1075,13 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 }
 
 /**
-* void CDlgParam::SaveCutPathFile(double dRatio)
-*
-* 功能說明:
-* 	保存每層切割路徑的比例和間距到對應的文件中。
-*
-* Input:
-* 	double dRatio: 當前層的比例。
-*
-* Output:
-* 	無
-*
-* Remark:
-* 	1. 將當前層的比例(dRatio)寫入m_fileIntersectRatio文件。
-* 	2. 將當前層的間距(m_dPitch)寫入m_fileCutPitch文件。
-* 	3. 在寫入數據之前，將文件指針移動到文件末尾。
-*/
+ * SaveCutPathFile - 保存切割路徑文件
+ *
+ * @param dRatio: 當前高度的比例
+ *
+ * 此函數將當前高度的比例和切割間距寫入對應的文件。首先，將比例寫入 `m_fileIntersectRatio` 文件，
+ * 然後將切割間距寫入 `m_fileCutPitch` 文件。每次寫入都會將文件指針移動到文件末尾。
+ */
 void CDlgParam::SaveCutPathFile(double dRatio)
 {
 	CString str;
@@ -1223,24 +1141,29 @@ bool CDlgParam::IsValidZPitchRatio(double dZPitchRatio)
 	return true;
 }
 
+void CDlgParam::ReverseArray(double * arr, int iSize)
+{
+	for (int i = 0; i < iSize / 2; ++i)
+	{
+		double dTmp = arr[i];
+		arr[i] = arr[iSize - i - 1];
+		arr[iSize - i - 1] = dTmp;
+	}
+}
+
 /**
-* bool CDlgParam::GetFirstCutPoint(double* pCoorX, double* pCoorZ)
-*
-* 功能說明:
-* 	初始化切割路徑的第一個切割點，根據交錯參數生成切割路徑並設定初始座標。
-*
-* Input:
-* 	double* pCoorX: 指向儲存X座標的指標。
-* 	double* pCoorZ: 指向儲存Z座標的指標。
-*
-* Output:
-* 	bool: 永遠返回true，表示成功取得第一個切割點。
-*
-* Remark:
-* 	1. 初始化相關參數，例如是否反轉、重複路徑計數、最後的Z座標等。
-* 	2. 根據是否交錯來生成切割路徑數組。
-* 	3. 設置初始的切割點座標。
-*/
+ * GetFirstCutPoint - 獲取第一個切割點
+ *
+ * @param pCoorX: 用於存儲X坐標的指針
+ * @param pCoorZ: 用於存儲Z坐標的指針
+ *
+ * @return 返回布爾值表示是否成功獲取切割點
+ *
+ * 此函數初始化一些狀態變數，並根據是否需要交錯來生成切割路徑數據。
+ * 如果需要交錯，調用 `GenIntersectLayerCutPath` 來生成交錯層的切割路徑；
+ * 否則，調用 `GenLayerCutPath` 來生成普通層的切割路徑。
+ * 最後將第一個切割點的坐標存儲在 `pCoorX` 和 `pCoorZ` 中。
+ */
 bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 {
 	m_bReverse = false;
@@ -1263,24 +1186,18 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 }
 
 /**
-* bool CDlgParam::GetNextCutPoint(double* pCoorX, double* pCoorZ)
-*
-* 功能說明:
-* 	取得下一個切割點座標，並處理起刀、收刀及一般切割點的重複與反轉邏輯。
-*
-* Input:
-* 	double* pCoorX: 指向儲存X座標的指標。
-* 	double* pCoorZ: 指向儲存Z座標的指標。
-*
-* Output:
-* 	bool: 如果還有更多的切割點則返回true，否則返回false。
-*
-* Remark:
-* 	1. 處理起刀點和收刀點的重複執行邏輯。
-* 	2. 更新當前切割路徑的索引，並在必要時切換到下一個Layer。
-* 	3. 根據是否反轉來重新排列切割路徑數組。
-* 	4. 根據當前的切割路徑索引設置下一個切割點的座標。
-*/
+ * GetNextCutPoint - 獲取下一個切割點
+ *
+ * @param pCoorX: 用於存儲X坐標的指針
+ * @param pCoorZ: 用於存儲Z坐標的指針
+ *
+ * @return 返回布爾值表示是否成功獲取下一個切割點
+ *
+ * 此函數用於獲取下一個切割點的坐標。根據當前的切割路徑位置和狀態，
+ * 函數會判斷是否需要重複起刀或收刀的操作，並根據當前層的狀態決定是否切換到下一層。
+ * 在每層中會根據是否需要交錯來生成新的切割路徑數據，並在需要時反轉數據順序。
+ * 最後將下一個切割點的坐標存儲在 `pCoorX` 和 `pCoorZ` 中。
+ */
 bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 {
 	bool bIntersect = true;
@@ -1289,15 +1206,14 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 	if (m_iCurPath == 0 && m_iRepeatPathCnt < m_iFirstPathCnt - 1)
 	{
 		m_iRepeatPathCnt++;
-
-		m_iRealCutSize = 1;
 	}
 	// 收刀重複執行
 	else if (m_iCurPath == m_iDataArraySize - 1 && m_iRepeatPathCnt < m_iLastPathCnt - 1)
 	{
 		m_iRepeatPathCnt++;
 	}
-	else// 其他刀
+	// 其他刀
+	else   
 	{
 		m_iCurPath++;
 		m_iRepeatPathCnt = 0;
@@ -1321,16 +1237,9 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 			if (m_bReverse)
 			{
-				for (int i = 0; i < m_iDataArraySize / 2; ++i)
-				{
-					double dTmp = m_ayCoor[i];
-					m_ayCoor[i] = m_ayCoor[m_iDataArraySize - i - 1];
-					m_ayCoor[m_iDataArraySize - i - 1] = dTmp;
-				}
+				ReverseArray(m_ayCoor, m_iDataArraySize);
 			}
 		}
-
-		m_iRealCutSize++;
 	}
 
 	*pCoorX = m_ayCoor[m_iCurPath];

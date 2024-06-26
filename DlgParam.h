@@ -79,7 +79,7 @@ public:
 	double m_dZPitchRatio90;			// 深度 Z 90%
 	double m_dZPitchRatio95;			// 深度 Z 95%
 	double m_dZPitchRatio100;			// 深度 Z 100%
-	double m_dZPitchRatio[NUM_Z_PITCH_RATIOS];
+	double m_ayZPitchRatio[NUM_Z_PITCH_RATIOS];
 
 	////成員函式內部使用
 	double m_dCoorLT_X;					// 客戶區域左上角 X 座標
@@ -106,7 +106,6 @@ public:
 	// 切割道相關
 	int m_iFirstSize;					// 紀錄第一高度的切割道數
 	int m_iDataArraySize;				// 當前高度的切割道數
-	int m_iRealCutSize;					// 實際切割道數目
 	int m_iCurPath;						// 當前在哪一個切割道
 	int m_iRepeatPathCnt;				// 當前切割道重複次數
 	int m_iIntersectSt;					// 開始進行交錯的 index
@@ -124,6 +123,7 @@ public:
 	// 數學計算
 	bool IsDoubleEqual(double d1, double d2);							// 檢查 d1 是否等同 d2
 	bool IsValidZPitchRatio(double dZPitchRatio);						// 檢查 Z Pitch Ratio 合法性
+	void ReverseArray(double *arr, int iSize);							// 反轉陣列
 
 	// 座標轉換
 	void D2ISetUp(CPoint dotLT, double dCoorLT_X, double dCoorLT_Y, double dRatioX, double dRatioY);// 座標基底
@@ -142,6 +142,7 @@ public:
 	void GetBlockCount();				// 計算 Client Rect Width 分割幾個 Block
 
 	// 輸入參數相關
+	void SetZPitchRatio();				// 設定深度 Z 比值
 	void WriteINI();					// 寫入 INI
 	void ReadINI();						// 讀取 INI
 	bool CheckParam();					// 參數檢查合法性
