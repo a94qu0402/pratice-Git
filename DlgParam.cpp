@@ -202,30 +202,29 @@ void CDlgParam::OnBnClickedButtonApply()
 {
 	UpdateData(TRUE);
 
-	// 計算預留區域(上下左右各預留 5 %)
-	GetReservedRect();
-
-	// 計算 Inflat 後的 Boundingbox (上下左右各預留 5 %)
-	GetInflatBoundingBox();
-
-	// 計算 Client Rect Ratio 並設定 D2I 的映射
-	GetClientRectRatio();
-
-	// 根據 pithch 計算畫面分割幾個區塊
-	GetBlockCount();
-
 	// 參數檢查
 	if(CheckParam())
-		Invalidate();	// 輸入參數合理的話更新畫面
+	{
+		// 計算預留區域(上下左右各預留 5 %)
+		GetReservedRect();
 
-	// 刪除文件
-	/*DeleteCutPathFile();*/
+		// 計算 Inflat 後的 Boundingbox (上下左右各預留 5 %)
+		GetInflatBoundingBox();
 
-	// 開啟文件
-	OpenCutPathFile();
+		// 計算 Client Rect Ratio 並設定 D2I 的映射
+		GetClientRectRatio();
 
-	WriteINI();
+		// 根據 pithch 計算畫面分割幾個區塊
+		GetBlockCount();
 
+		// 輸入參數合理的話更新畫面
+		Invalidate();	
+
+		// 開啟文件
+		OpenCutPathFile();
+
+		WriteINI();
+	}
 }
 
 void CDlgParam::D2ISetUp(CPoint dotLT, double dCoorLT_X, double dCoorLT_Y, double dRatioX, double dRatioY)
@@ -350,14 +349,14 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 	m_iIntersectSt = m_iEdgeKeepCnt - 1;
 	m_iIntersectEd = iArraySize - m_iEdgeKeepCnt;
 
-	SaveCutPathFile((double)iArraySize / dCutLength);// 輸出文字檔案
+	SaveCutPathFile((double)iArraySize / dCutLength);		// 輸出文字檔案
 
 	return iArraySize;
 }
 
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
-	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);  // 切口寬度
+	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);		// 切口寬度
 	double dTolerance = pow(10, -m_iDigits);
 
 	// 未交錯的部分，切割道間距為 m_dCuttingSpacing
@@ -442,7 +441,7 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 			dXCur += dPitch ;
 	}
 
-	SaveCutPathFile((double)iArraySize / dCutLength);// 輸出文字檔案
+	SaveCutPathFile((double)iArraySize / dCutLength);							// 輸出文字檔案
 
 	return iArraySize;
 }
@@ -991,7 +990,7 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 	} while (GetNextCutPoint(&dCoorX, &dCoorZ));
 
 	m_fileIntersectRatio.Close();
-	m_fileCut.Close();
+	m_fileCutPitch.Close();
 
 	// 恢復畫筆
 	pCtrlDC->SelectObject(pOldPen);
@@ -1034,15 +1033,12 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	return this;
 }
 
-void CDlgParam::SaveCutPathFile(double dCoorZ)
+void CDlgParam::SaveCutPathFile(double dRatio)
 {
 	CString str;
-	double dCutLength = GetCutLayerWidth(dCoorZ) + MIN_VALUE;
-	double dRatio = (double)m_iRealCutSize / dCutLength;
 
 	// 寫入每個高度的 dRatio
-	/*str.Format(_T("%.3f (%d / %.6f)\n"), dRatio, m_iRealCutSize, dCutLength);*/
-	str.Format(_T("%.3f \n"), dCoorZ);
+	str.Format(_T("%.3f \n"), dRatio);
 
 	m_fileIntersectRatio.SeekToEnd();
 
@@ -1051,22 +1047,22 @@ void CDlgParam::SaveCutPathFile(double dCoorZ)
 	// 寫入每個高度的 pitch
 	str.Format(_T("%.3f \n"), m_dPitch);
 
-	m_fileCut.SeekToEnd();
+	m_fileCutPitch.SeekToEnd();
 
-	m_fileCut.Write(str, str.GetLength() * sizeof(TCHAR));
+	m_fileCutPitch.Write(str, str.GetLength() * sizeof(TCHAR));
 }
 
 void CDlgParam::OpenCutPathFile()
 {
-	CString strFilename = GetFilePath(_T("Intersect_Ratio.txt"));
-	CString strFilename2 = GetFilePath(_T("CuttingSpacing.txt"));
+	CString strFilename = SetFilePath(_T("Intersect_Ratio.txt"));
+	CString strFilename2 = SetFilePath(_T("CuttingSpacing.txt"));
 
 	OpenFile(m_fileIntersectRatio, strFilename);
-	OpenFile(m_fileCut, strFilename2);
+	OpenFile(m_fileCutPitch, strFilename2);
 }
 
 
-CString CDlgParam::GetFilePath(const CString & filename)
+CString CDlgParam::SetFilePath(const CString & filename)
 {
 	TCHAR szPath[MAX_PATH];
 	GetModuleFileName(NULL, szPath, MAX_PATH);

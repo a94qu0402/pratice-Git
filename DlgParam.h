@@ -149,11 +149,11 @@ public:
 	CDlgParam* operator =(const CDlgParam &DlgParam);	// dlg '='
 
 	// 檔案 - 有關 Intersect
-	double m_dPitch;									// 用於紀錄每一層的 pitch
-	CFile  m_fileIntersectRatio, m_fileCut;		
-	void SaveCutPathFile(double dCoorZ);		
-	void OpenCutPathFile();
+	double m_dPitch;							// 用於紀錄每一層的 pitch
+	CFile  m_fileIntersectRatio, m_fileCutPitch;		
+	void SaveCutPathFile(double dRatio);		// 儲存資訊於檔案
+	void OpenCutPathFile();						// 打開需要寫入的檔案
 
-	CString GetFilePath(const CString& filename);
-	void OpenFile(CFile& file, const CString& filename);
+	CString SetFilePath(const CString& filename);			// 得到檔案路徑
+	void OpenFile(CFile& file, const CString& filename);	// 打開檔案
 };
