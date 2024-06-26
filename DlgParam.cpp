@@ -1192,19 +1192,7 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 	return true;
 }
 
-/**
- * GetNextCutPoint - 獲取下一個切割點
- *
- * @param pCoorX: 用於存儲X坐標的指針
- * @param pCoorZ: 用於存儲Z坐標的指針
- *
- * @return 返回布爾值表示是否成功獲取下一個切割點
- *
- * 此函數用於獲取下一個切割點的坐標。根據當前的切割路徑位置和狀態，
- * 函數會判斷是否需要重複起刀或收刀的操作，並根據當前層的狀態決定是否切換到下一層。
- * 在每層中會根據是否需要交錯來生成新的切割路徑數據，並在需要時反轉數據順序。
- * 最後將下一個切割點的坐標存儲在 `pCoorX` 和 `pCoorZ` 中。
- */
+
 bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 {
 	bool bIntersect = true;
@@ -1225,16 +1213,16 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 		m_iCurPath++;
 		m_iRepeatPathCnt = 0;
 
-		if (m_iCurPath >= m_iDataArraySize)	//換到下一個 Layrer
+		if (m_iCurPath >= m_iDataArraySize)		//換到下一個 Layrer
 		{
-			m_bReverse = !m_bReverse;
+			m_bReverse = !m_bReverse;			// 反向
 
-			m_dLastCoorZ += GetLayerHeight();
+			m_dLastCoorZ += GetLayerHeight();	// 更新 Z 軸座標
 
 			if (m_dLastCoorZ > m_dZDepth && !IsDoubleEqual(m_dLastCoorZ, m_dZDepth))	// 已經到底了，結束判斷
 				return false;
 
-			m_iCurPath = 0;
+			m_iCurPath = 0;						// 重置當前切割道
 
 			// 處理交錯
 			int iCurDepth = (int)((m_dLastCoorZ / m_dZDepth) * 100);
