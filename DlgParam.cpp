@@ -54,8 +54,8 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 	, m_iLastPathCnt(1)
 	, m_iEdgeKeepCnt(1)
 	, m_iDigits(6)
-	, m_bIntersect(FALSE)
 	, m_dIntersectRatio(0)
+	, m_iZThrehold(100)
 {
 	m_iCurPath = 0;
 
@@ -102,15 +102,14 @@ void CDlgParam::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_LAST_PATH_CNT, m_iLastPathCnt);
 	DDX_Control(pDX, IDC_EDIT__EDGE_KEEP_CNT, m_editEdgeKeepCnt);
 	DDX_Control(pDX, IDC_STATIC_EDGE_KEEP_CNT, m_staticEdgeKeepCnt);
-	DDX_Control(pDX, IDC_CHECK_INTERSECT, m_chkIntersect);
 	DDX_Text(pDX, IDC_EDIT__EDGE_KEEP_CNT, m_iEdgeKeepCnt);
 	DDX_Text(pDX, IDC_EDIT_IDIGITS, m_iDigits);
-	DDX_Check(pDX, IDC_CHECK_INTERSECT, m_bIntersect);
 	DDX_Control(pDX, IDC_EDIT_UPPER_WIDTH, m_editUpperW);
 	DDX_Control(pDX, IDC_EDIT_LOWER_WIDTH, m_editLowerW);
 	DDX_Control(pDX, IDC_EDIT_FIRST_PATH_CNT, m_editFirstPathCnt);
 	DDX_Control(pDX, IDC_EDIT_LAST_PATH_CNT, m_editLastPathCnt);
 	DDX_Text(pDX, IDC_EDIT_INTERSECT_RATIO, m_dIntersectRatio);
+	DDX_Text(pDX, IDC_EDIT_Z_INTERSECT_THRESHOLD, m_iZThrehold);
 }
 
 
@@ -118,7 +117,6 @@ BEGIN_MESSAGE_MAP(CDlgParam, CDialogEx)
 	ON_WM_PAINT()
 	ON_BN_CLICKED(IDC_BUTTON_APPLY, &CDlgParam::OnBnClickedButtonApply)
 	ON_WM_CLOSE()
-	ON_BN_CLICKED(IDC_CHECK_INTERSECT, &CDlgParam::OnBnClickedCheckIntersect)
 END_MESSAGE_MAP()
 
 
@@ -318,12 +316,6 @@ void CDlgParam::OnClose()
 	CDialogEx::OnClose();
 }
 
-
-void CDlgParam::OnBnClickedCheckIntersect()
-{ 
-	BOOL bChecked = m_chkIntersect.GetCheck();
-
-}
 
 /**
  * GenLayerCutPath - 生成指定層的切割路徑
@@ -663,11 +655,11 @@ void CDlgParam::WriteINI()
 	strValue.Format(_T("%f"), m_dZPitchRatio100);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio100"), strValue, strINIPath);
 
-	strValue.Format(_T("%d"), m_bIntersect);
-	WritePrivateProfileString(_T("ENV"), _T("Intersect"), strValue, strINIPath);
-
 	strValue.Format(_T("%f"), m_dIntersectRatio);
 	WritePrivateProfileString(_T("ENV"), _T("IntersectRatio"), strValue, strINIPath);
+
+	strValue.Format(_T("%d"), m_iZThrehold);
+	WritePrivateProfileString(_T("ENV"), _T("ZThrehold"), strValue, strINIPath);
 }
 
 void CDlgParam::ReadINI()
@@ -770,11 +762,11 @@ void CDlgParam::ReadINI()
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio100"), _T("30"), szBuf, _countof(szBuf), strINIPath);
 	m_dZPitchRatio100 = _tstof(szBuf);
 
-	GetPrivateProfileString(_T("ENV"), _T("Intersect"), _T("0"), szBuf, _countof(szBuf), strINIPath);
-	m_bIntersect = _ttoi(szBuf);
-
-	GetPrivateProfileString(_T("ENV"), _T("IntersectRatio"), _T("0.5"), szBuf, _countof(szBuf), strINIPath);
+	GetPrivateProfileString(_T("ENV"), _T("IntersectRatio"), _T("0"), szBuf, _countof(szBuf), strINIPath);
 	m_dIntersectRatio = _tstof(szBuf);
+
+	GetPrivateProfileString(_T("ENV"), _T("ZThrehold"), _T("100"), szBuf, _countof(szBuf), strINIPath);
+	m_iZThrehold = _ttoi(szBuf);
 }
 
 bool CDlgParam::CheckParam()
@@ -809,23 +801,38 @@ bool CDlgParam::CheckParam()
 	}
 
 	// 邊緣保留次數
-	if (m_bIntersect && m_iEdgeKeepCnt <= 1)
+	if (m_dIntersectRatio > 0 && m_iEdgeKeepCnt <= 1)
 	{
 		AfxMessageBox(_T("邊緣保留次數不能小於 2"));
 
-		m_bIntersect = false;
+		m_dIntersectRatio = 0;
 
 		return false;
 	}
 
 	// 深度比值不能小於 1 大於 100
-
 	for (double dRatio : m_ayZPitchRatio)
 	{
 		if (!IsValidZPitchRatio(dRatio))
 		{
 			return false; // 如果有一個值無效，返回 false
 		}
+	}
+
+	// 交錯比不能小於 1
+	if (m_dIntersectRatio < 0)
+	{
+		AfxMessageBox(_T("交錯比不能小於 0"));
+
+		return false;
+	}
+
+	// 交錯深度 Z 的門檻
+	if (m_iZThrehold < 0 || m_iZThrehold > 100)
+	{
+		AfxMessageBox(_T("交錯比深度 Z 需要介於 0 ~ 100 間"));
+
+		return false;
 	}
 
 	return true;
@@ -1046,7 +1053,6 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	m_dLowerWidth = DlgParam.m_dLowerWidth;
 	m_iFirstPathCnt = DlgParam.m_iFirstPathCnt;
 	m_iLastPathCnt = DlgParam.m_iLastPathCnt;
-	m_bIntersect = DlgParam.m_bIntersect;
 	m_iEdgeKeepCnt = DlgParam.m_iEdgeKeepCnt;
 	m_iDigits = DlgParam.m_iDigits;
 	m_dZPitchRatio5 = DlgParam.m_dZPitchRatio5;
@@ -1070,6 +1076,7 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	m_dZPitchRatio95 = DlgParam.m_dZPitchRatio95;
 	m_dZPitchRatio100 = DlgParam.m_dZPitchRatio100;
 	m_dIntersectRatio = DlgParam.m_dIntersectRatio;
+	m_iZThrehold = DlgParam.m_iZThrehold;
 	
 	return this;
 }
@@ -1174,7 +1181,7 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 	m_iCurPath = 0;
 
 	// 處理交錯
-	if (m_bIntersect)	
+	if (m_dIntersectRatio > 0)
 		m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
 	else
 		m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
@@ -1230,7 +1237,9 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			m_iCurPath = 0;
 
 			// 處理交錯
-			if (m_bIntersect)	
+			int iCurDepth = (int)((m_dLastCoorZ / m_dZDepth) * 100);
+
+			if (m_dIntersectRatio > 0 && iCurDepth <= m_iZThrehold)	// 如果啟用交錯模式且在交錯深度門檻內要使用交錯
 				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
 			else
 				m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);

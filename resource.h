@@ -19,8 +19,10 @@
 #define IDC_STATIC_INTERSECT_RATIO      1008
 #define IDC_PICTURE_INTERSECT_RATIO     1009
 #define IDC_BUTTON_APPLY2               1009
+#define IDC_STATIC_EDGE_KEEP_CNT3       1009
 #define IDC_BUTTON_GEN_DIA              1010
 #define IDC_BUTTON_GEN_GRAPTH           1010
+#define IDC_STATIC_EDGE_KEEP_CNT4       1010
 #define IDC_EDIT2                       1011
 #define IDC_EDIT_Z_PITCH_RATIO_10       1011
 #define IDC_EDIT3                       1012
@@ -79,6 +81,8 @@
 #define IDC_EDIT_Z_PITCH_RATIO_95       1063
 #define IDC_EDIT40                      1064
 #define IDC_EDIT_Z_PITCH_RATIO_100      1064
+#define IDC_EDIT_Z_INTER_THRESHOLD      1065
+#define IDC_EDIT_Z_INTERSECT_THRESHOLD  1065
 
 // Next default values for new objects
 // 

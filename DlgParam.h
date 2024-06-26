@@ -31,14 +31,11 @@ public:
     afx_msg void OnBnClickedButtonApply();
     afx_msg void OnPaint();
     afx_msg void OnClose();
-    afx_msg void OnBnClickedCheckIntersect();
-
-    CButton m_chkIntersect;				// 交錯
+  
     CEdit m_editEdgeKeepCnt;
     CStatic m_staticEdgeKeepCnt;
     CStatic m_PictureCtrl;
 	CPoint m_dotRectLT;
-	BOOL m_bIntersect;
 	CEdit m_editUpperW;
 	CEdit m_editLowerW;
 	CEdit m_editFirstPathCnt;
@@ -52,6 +49,7 @@ public:
     double m_dLowerWidth;				// 下開口寬度
     double m_dMaxWidth;					// 開口寬度
 	double m_dIntersectRatio;			// 交錯比
+	int m_iZThrehold;					// 深度 Z 的交錯門檻			
 
 	int m_iFirstPathCnt;				// 首道切割道重複次數
 	int m_iLastPathCnt;					// 末道切割道重複次數
@@ -157,4 +155,5 @@ public:
 
 	CString SetFilePath(const CString& filename);			// 得到檔案路徑
 	void OpenFile(CFile& file, const CString& filename);	// 打開檔案
+				
 };
