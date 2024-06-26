@@ -239,6 +239,25 @@ void CDlgParam::D2ISetUp(CPoint dotLT, double dCoorLT_X, double dCoorLT_Y, doubl
 	m_dRatioY = dRatioY;
 }
 
+/**
+* void CDlgParam::D2I(double dCoorX, double dCoorY, CPoint &dotResult)
+*
+* 功能說明:
+* 	將雙精度浮點數座標轉換為整數座標，並儲存到dotResult中。
+*
+* Input:
+* 	double dCoorX: X座標的雙精度浮點數。
+* 	double dCoorY: Y座標的雙精度浮點數。
+* 	CPoint &dotResult: 用於儲存轉換後的整數座標的CPoint對象。
+*
+* Output:
+* 	無
+*
+* Remark:
+* 	1. 根據比例將浮點數座標轉換為對應的整數座標。
+* 	2. 轉換後的X座標加上左上角的X偏移量。
+* 	3. 轉換後的Y座標減去左上角的Y偏移量（因為Y軸方向相反）。
+*/
 void CDlgParam::D2I(double dCoorX, double dCoorY, CPoint &dotResult)
 {
 	double dX = (dCoorX - m_dCoorLT_X) * m_dRatioX;
@@ -257,6 +276,24 @@ double CDlgParam::GetCutLayerWidth(double dCoorZ)
 	return dCutLength;
 }
 
+/**
+* bool CDlgParam::IsDoubleEqual(double d1, double d2)
+*
+* 功能說明:
+* 	比較兩個雙精度浮點數是否在允許的誤差範圍內相等。
+*
+* Input:
+* 	double d1: 第一個浮點數。
+* 	double d2: 第二個浮點數。
+*
+* Output:
+* 	bool: 如果兩個浮點數相等，返回true；否則返回false。
+*
+* Remark:
+* 	1. 計算允許的誤差範圍，取決於m_iDigits。
+* 	2. 計算兩個浮點數之差，並檢查其是否在允許的誤差範圍內。
+* 	3. 使用fabs函數來取絕對值。
+*/
 bool CDlgParam::IsDoubleEqual (double d1,double d2)
 {
 	bool bEqual = true;
@@ -285,6 +322,27 @@ void CDlgParam::OnBnClickedCheckIntersect()
 
 }
 
+/**
+* int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize)
+*
+* 功能說明:
+* 	生成普通層的切割路徑，根據給定的切口寬度和增量計算切割道數，並處理邊緣保留和間隔的邏輯。
+*
+* Input:
+* 	double dCoorZ: 當前層的Z座標。
+* 	double dPitch: 切割道的間距。
+* 	double ayResult[]: 用於儲存生成的切割路徑的數組。
+* 	int iMaxSize: 數組的最大尺寸。
+*
+* Output:
+* 	int: 返回生成的切割路徑數組的大小。
+*
+* Remark:
+* 	1. 根據切口寬度和增量計算切割道數。
+* 	2. 考慮殘量並調整切割道數，確保與上層間的切割道數差為0或2。
+* 	3. 生成完整的切割路徑數組，處理起刀、收刀和邊緣保留的邏輯。
+* 	4. 保存生成的切割路徑到檔案中。
+*/
 int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize)
 {
 	double dTolerance = pow(10, -m_iDigits);
@@ -354,6 +412,26 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 	return iArraySize;
 }
 
+/**
+* int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
+*
+* 功能說明:
+* 	生成交錯層的切割路徑，根據切口寬度和交錯比計算切割道數，並處理邊緣保留和間隔的邏輯。
+*
+* Input:
+* 	double ayResult[]: 用於儲存生成的切割路徑的數組。
+* 	int iMaxSize: 數組的最大尺寸。
+*
+* Output:
+* 	int: 返回生成的切割路徑數組的大小。
+*
+* Remark:
+* 	1. 根據切口寬度和增量計算未交錯的切割道數。
+* 	2. 考慮殘量並調整切割道數，確保與上層間的切割道數差為0或2。
+* 	3. 計算交錯部分的切口寬度和間隔，並調整增量以符合切口寬度。
+* 	4. 生成完整的切割路徑數組，處理起刀、收刀和邊緣保留的邏輯。
+* 	5. 保存生成的切割路徑到檔案中。
+*/
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
 	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);		// 切口寬度
@@ -446,6 +524,23 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	return iArraySize;
 }
 
+/**
+* double CDlgParam::GetLayerHeight()
+*
+* 功能說明:
+* 	根據當前的Z深度比例計算層的高度，並返回對應的高度值。
+*
+* Input:
+* 	無
+*
+* Output:
+* 	double: 返回計算出的層高度。
+*
+* Remark:
+* 	1. 計算當前Z深度相對於總深度的百分比，並根據百分比取整至最接近的5的倍數。
+* 	2. 根據計算出的百分比返回相應比例的層高度。
+* 	3. 使用多個比例參數來調整不同深度下的層高度。
+*/
 double CDlgParam::GetLayerHeight()
 {
 	int iPercentage = static_cast<int>((m_dLastCoorZ / m_dZDepth) * 100.0);
@@ -886,6 +981,7 @@ void CDlgParam::DrawOriginLine(CDC* pCtrlDC)
 	pCtrlDC->SelectObject (pOldPen);
 }
 
+
 void CDlgParam::DrawGridLines(CDC* pCtrlDC)
 {
 	// 用紅色繪製方格
@@ -925,6 +1021,24 @@ void CDlgParam::DrawGridLines(CDC* pCtrlDC)
 	pCtrlDC->SelectObject(pOldPen);
 }
 
+/**
+* void CDlgParam::DrawCutPath(CDC* pCtrlDC)
+*
+* 功能說明:
+* 	繪製切割路徑，根據當前路徑的狀態，使用不同顏色的畫筆繪製切割點，包括起刀點、收刀點和一般點。
+*
+* Input:
+* 	CDC* pCtrlDC: 繪圖控制的DC指針，用於在指定的DC上進行繪製。
+*
+* Output:
+* 	無
+*
+* Remark:
+* 	1. 使用不同顏色的畫筆來標識起刀點（紫色）、收刀點（橘色）和一般點（藍色）。
+* 	2. 根據路徑的狀態，繪製圓點並進行適當的偏移處理。
+* 	3. 使用完畫筆後恢復原先的畫筆設置。
+* 	4. 需要進行多次迭代來取得所有的切割點並進行繪製。
+*/
 void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 {
 	CPen penBlue(PS_SOLID, 5, RGB(0, 0, 255));		// 藍色筆
@@ -1033,6 +1147,23 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	return this;
 }
 
+/**
+* void CDlgParam::SaveCutPathFile(double dRatio)
+*
+* 功能說明:
+* 	保存每層切割路徑的比例和間距到對應的文件中。
+*
+* Input:
+* 	double dRatio: 當前層的比例。
+*
+* Output:
+* 	無
+*
+* Remark:
+* 	1. 將當前層的比例(dRatio)寫入m_fileIntersectRatio文件。
+* 	2. 將當前層的間距(m_dPitch)寫入m_fileCutPitch文件。
+* 	3. 在寫入數據之前，將文件指針移動到文件末尾。
+*/
 void CDlgParam::SaveCutPathFile(double dRatio)
 {
 	CString str;
@@ -1092,6 +1223,24 @@ bool CDlgParam::IsValidZPitchRatio(double dZPitchRatio)
 	return true;
 }
 
+/**
+* bool CDlgParam::GetFirstCutPoint(double* pCoorX, double* pCoorZ)
+*
+* 功能說明:
+* 	初始化切割路徑的第一個切割點，根據交錯參數生成切割路徑並設定初始座標。
+*
+* Input:
+* 	double* pCoorX: 指向儲存X座標的指標。
+* 	double* pCoorZ: 指向儲存Z座標的指標。
+*
+* Output:
+* 	bool: 永遠返回true，表示成功取得第一個切割點。
+*
+* Remark:
+* 	1. 初始化相關參數，例如是否反轉、重複路徑計數、最後的Z座標等。
+* 	2. 根據是否交錯來生成切割路徑數組。
+* 	3. 設置初始的切割點座標。
+*/
 bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 {
 	m_bReverse = false;
@@ -1113,6 +1262,25 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 	return true;
 }
 
+/**
+* bool CDlgParam::GetNextCutPoint(double* pCoorX, double* pCoorZ)
+*
+* 功能說明:
+* 	取得下一個切割點座標，並處理起刀、收刀及一般切割點的重複與反轉邏輯。
+*
+* Input:
+* 	double* pCoorX: 指向儲存X座標的指標。
+* 	double* pCoorZ: 指向儲存Z座標的指標。
+*
+* Output:
+* 	bool: 如果還有更多的切割點則返回true，否則返回false。
+*
+* Remark:
+* 	1. 處理起刀點和收刀點的重複執行邏輯。
+* 	2. 更新當前切割路徑的索引，並在必要時切換到下一個Layer。
+* 	3. 根據是否反轉來重新排列切割路徑數組。
+* 	4. 根據當前的切割路徑索引設置下一個切割點的座標。
+*/
 bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 {
 	bool bIntersect = true;
