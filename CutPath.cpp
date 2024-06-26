@@ -111,6 +111,9 @@ CCutPathApp::CCutPathApp()
 {
 	// TODO:  在此加入建構程式碼，
 	// 將所有重要的初始設定加入 InitInstance 中
+	
+
+
 }
 
 CCutPathApp::~CCutPathApp()

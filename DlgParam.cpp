@@ -64,6 +64,8 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 	m_bReverse = false;
 
 	ReadINI();
+
+	SetZPitchRatio();
 }
 
 CDlgParam::~CDlgParam()
@@ -155,8 +157,7 @@ BOOL CDlgParam::OnInitDialog()
 	// 根據 pithch 計算畫面分割幾個區塊
 	GetBlockCount();
 
-	// 開啟文件
-	OpenCutPathFile();
+	
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX 屬性頁應傳回 FALSE
@@ -220,9 +221,6 @@ void CDlgParam::OnBnClickedButtonApply()
 
 		// 輸入參數合理的話更新畫面
 		Invalidate();	
-
-		// 開啟文件
-		OpenCutPathFile();
 
 		WriteINI();
 	}
@@ -1037,8 +1035,7 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 		}
 	} while (GetNextCutPoint(&dCoorX, &dCoorZ));
 
-	m_fileIntersectRatio.Close();
-	m_fileCutPitch.Close();
+	
 
 	// 恢復畫筆
 	pCtrlDC->SelectObject(pOldPen);
@@ -1113,6 +1110,17 @@ void CDlgParam::OpenCutPathFile()
 	CString strFilename = SetFilePath(_T("Intersect_Ratio.txt"));
 	CString strFilename2 = SetFilePath(_T("CuttingSpacing.txt"));
 
+	// 如果文件已經打開，則先關閉文件
+	if (m_fileIntersectRatio.m_hFile != CFile::hFileNull)
+	{
+		m_fileIntersectRatio.Close();
+	}
+
+	if (m_fileCutPitch.m_hFile != CFile::hFileNull)
+	{
+		m_fileCutPitch.Close();
+	}
+
 	OpenFile(m_fileIntersectRatio, strFilename);
 	OpenFile(m_fileCutPitch, strFilename2);
 }
@@ -1177,6 +1185,8 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 	m_iRepeatPathCnt = 0;
 	m_dLastCoorZ = 0.0;
 	
+	// 開啟文件
+	OpenCutPathFile();
 
 	m_iCurPath = 0;
 
@@ -1195,8 +1205,6 @@ bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 
 bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 {
-	bool bIntersect = true;
-
 	// 起刀重複執行
 	if (m_iCurPath == 0 && m_iRepeatPathCnt < m_iFirstPathCnt - 1)
 	{
@@ -1220,7 +1228,11 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			m_dLastCoorZ += GetLayerHeight();	// 更新 Z 軸座標
 
 			if (m_dLastCoorZ > m_dZDepth && !IsDoubleEqual(m_dLastCoorZ, m_dZDepth))	// 已經到底了，結束判斷
+			{
+				m_fileIntersectRatio.Close();
+				m_fileCutPitch.Close();
 				return false;
+			}
 
 			m_iCurPath = 0;						// 重置當前切割道
 
@@ -1229,7 +1241,7 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 			if (m_dIntersectRatio > 0 && iCurDepth <= m_iZThrehold)	// 如果啟用交錯模式且在交錯深度門檻內要使用交錯
 				m_iDataArraySize = GenIntersectLayerCutPath(m_ayCoor, MAX_ARRAY_SIZE);
-			else
+			else  
 				m_iDataArraySize = GenLayerCutPath(m_dLastCoorZ, m_dCuttingSpacing, m_ayCoor, MAX_ARRAY_SIZE);
 
 			if (m_bReverse)
@@ -1238,8 +1250,10 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 			}
 		}
 	}
-
+	 
 	*pCoorX = m_ayCoor[m_iCurPath];
 	*pCoorZ = -m_dLastCoorZ;
+	
+	return true;
 }
 
