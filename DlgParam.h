@@ -149,7 +149,9 @@ public:
 
 	// 檔案 - 有關 Intersect
 	double m_dPitch;							// 用於紀錄每一層的 pitch
-	CFile  m_fileIntersectRatio, m_fileCutPitch;		
+
+	static CFile m_fileIntersectRatio;
+	static CFile m_fileCutPitch;
 	void SaveCutPathFile(double dRatio);		// 儲存資訊於檔案
 	void OpenCutPathFile();						// 打開需要寫入的檔案
 

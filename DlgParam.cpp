@@ -4,6 +4,10 @@
 #include "pch.h"
 #include "CutPath.h"
 #include "DlgParam.h"
+
+CFile CDlgParam::m_fileIntersectRatio;
+CFile CDlgParam::m_fileCutPitch;
+
 #include "afxdialogex.h"
 #include <vector>
 
@@ -80,26 +84,53 @@ void CDlgParam::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_CUTTING_SPACING, m_dCuttingSpacing);
 	DDX_Text(pDX, IDC_EDIT_UPPER_WIDTH, m_dUpperWidth);
 	DDX_Text(pDX, IDC_EDIT_LOWER_WIDTH, m_dLowerWidth);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_5, m_dZPitchRatio5);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_10, m_dZPitchRatio10);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_15, m_dZPitchRatio15);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_20, m_dZPitchRatio20);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_25, m_dZPitchRatio25);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_30, m_dZPitchRatio30);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_35, m_dZPitchRatio35);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_40, m_dZPitchRatio40);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_455, m_dZPitchRatio45);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_50, m_dZPitchRatio50);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_55, m_dZPitchRatio55);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_60, m_dZPitchRatio60);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_65, m_dZPitchRatio65);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_70, m_dZPitchRatio70);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_75, m_dZPitchRatio75);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_80, m_dZPitchRatio80);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_85, m_dZPitchRatio85);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_90, m_dZPitchRatio90);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_95, m_dZPitchRatio95);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_100, m_dZPitchRatio100);
+
+	
+
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_5, m_ayZPitchRatio[0]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_10, m_ayZPitchRatio[1]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_15, m_ayZPitchRatio[2]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_20, m_ayZPitchRatio[3]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_25, m_ayZPitchRatio[4]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_30, m_ayZPitchRatio[5]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_35, m_ayZPitchRatio[6]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_40, m_ayZPitchRatio[7]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_455, m_ayZPitchRatio[8]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_50, m_ayZPitchRatio[9]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_55, m_ayZPitchRatio[10]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_60, m_ayZPitchRatio[11]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_65, m_ayZPitchRatio[12]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_70, m_ayZPitchRatio[13]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_75, m_ayZPitchRatio[14]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_80, m_ayZPitchRatio[15]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_85, m_ayZPitchRatio[16]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_90, m_ayZPitchRatio[17]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_95, m_ayZPitchRatio[18]);
+	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_100, m_ayZPitchRatio[19]);
+
+
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_5, m_dZPitchRatio5);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_10, m_dZPitchRatio10);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_15, m_dZPitchRatio15);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_20, m_dZPitchRatio20);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_25, m_dZPitchRatio25);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_30, m_dZPitchRatio30);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_35, m_dZPitchRatio35);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_40, m_dZPitchRatio40);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_455, m_dZPitchRatio45);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_50, m_dZPitchRatio50);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_55, m_dZPitchRatio55);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_60, m_dZPitchRatio60);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_65, m_dZPitchRatio65);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_70, m_dZPitchRatio70);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_75, m_dZPitchRatio75);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_80, m_dZPitchRatio80);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_85, m_dZPitchRatio85);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_90, m_dZPitchRatio90);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_95, m_dZPitchRatio95);
+	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_100, m_dZPitchRatio100);
+
+
 	DDX_Text(pDX, IDC_EDIT_FIRST_PATH_CNT, m_iFirstPathCnt);
 	DDX_Text(pDX, IDC_EDIT_LAST_PATH_CNT, m_iLastPathCnt);
 	DDX_Control(pDX, IDC_EDIT__EDGE_KEEP_CNT, m_editEdgeKeepCnt);
@@ -156,8 +187,6 @@ BOOL CDlgParam::OnInitDialog()
 
 	// 根據 pithch 計算畫面分割幾個區塊
 	GetBlockCount();
-
-	
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 				  // EXCEPTION: OCX 屬性頁應傳回 FALSE
