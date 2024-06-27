@@ -48,8 +48,6 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 	m_bReverse = false;
 
 	ReadINI();
-
-	/*SetZPitchRatio();*/
 }
 
 CDlgParam::~CDlgParam()
@@ -124,12 +122,7 @@ BOOL CDlgParam::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	ReadINI();
-
 	UpdateData(FALSE);
-
-	// 設定 Z pitch ratio
-	/*SetZPitchRatio();*/
 
 	CWnd* pPictureCtrl = GetDlgItem(IDC_PICTURE_PAINTINGAREA);
 	CWnd* pGrapthCtrl = GetDlgItem(IDC_PICTURE_INTERSECT_RATIO);
@@ -167,7 +160,6 @@ void CDlgParam::OnPaint()
 	CWnd* pPictureCtrl = GetDlgItem(IDC_PICTURE_PAINTINGAREA);
 	CDC* pCtrlDC = pPictureCtrl->GetDC();
 	
-
 	// 繪製背景
 	CRect rectClient;
 	pPictureCtrl->GetClientRect(&rectClient);
@@ -939,7 +931,6 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 		m_ayZPitchRatio[i] = DlgParam.m_ayZPitchRatio[i];
 	}
 	
-	
 	return this;
 }
 
@@ -1006,7 +997,6 @@ bool CDlgParam::IsValidZPitchRatio(double dZPitchRatio)
 {
 	if (dZPitchRatio < 1.0 || dZPitchRatio > 100.0)
 	{
-		AfxMessageBox(_T("深度 Z 輸入的數值有誤(合理 range:1.0~100.0)"));
 		return false;
 	}
 	
