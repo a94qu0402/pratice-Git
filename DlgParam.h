@@ -49,35 +49,13 @@ public:
     double m_dLowerWidth;				// 下開口寬度
     double m_dMaxWidth;					// 開口寬度
 	double m_dIntersectRatio;			// 交錯比
-	int m_iZThrehold;					// 深度 Z 的交錯門檻			
+	double m_ayZPitchRatio[NUM_Z_PITCH_RATIOS]; // 深度 Z 比率(每 5% 一個 range)
 
+	int m_iZThrehold;					// 深度 Z 的交錯門檻			
 	int m_iFirstPathCnt;				// 首道切割道重複次數
 	int m_iLastPathCnt;					// 末道切割道重複次數
 	int m_iEdgeKeepCnt;					// 邊緣保留次數
 	int m_iDigits;						// 小數點末幾位
-
-	// 深度 Z 比率
-	double m_dZPitchRatio5;				// 深度 Z 5%			
-	double m_dZPitchRatio10;			// 深度 Z 10%
-	double m_dZPitchRatio15;			// 深度 Z 15%
-	double m_dZPitchRatio20;			// 深度 Z 20%
-	double m_dZPitchRatio25;			// 深度 Z 25%
-	double m_dZPitchRatio30;			// 深度 Z 30%
-	double m_dZPitchRatio35;			// 深度 Z 35%
-	double m_dZPitchRatio40;			// 深度 Z 40%
-	double m_dZPitchRatio45;			// 深度 Z 45%
-	double m_dZPitchRatio50;			// 深度 Z 50%
-	double m_dZPitchRatio55;			// 深度 Z 55%
-	double m_dZPitchRatio60;			// 深度 Z 60%
-	double m_dZPitchRatio65;			// 深度 Z 65%
-	double m_dZPitchRatio70;			// 深度 Z 70%
-	double m_dZPitchRatio75;			// 深度 Z 75%
-	double m_dZPitchRatio80;			// 深度 Z 80%
-	double m_dZPitchRatio85;			// 深度 Z 85%
-	double m_dZPitchRatio90;			// 深度 Z 90%
-	double m_dZPitchRatio95;			// 深度 Z 95%
-	double m_dZPitchRatio100;			// 深度 Z 100%
-	double m_ayZPitchRatio[NUM_Z_PITCH_RATIOS];
 
 	////成員函式內部使用
 	double m_dCoorLT_X;					// 客戶區域左上角 X 座標
@@ -140,7 +118,6 @@ public:
 	void GetBlockCount();				// 計算 Client Rect Width 分割幾個 Block
 
 	// 輸入參數相關
-	void SetZPitchRatio();				// 設定深度 Z 比值
 	void WriteINI();					// 寫入 INI
 	void ReadINI();						// 讀取 INI
 	bool CheckParam();					// 參數檢查合法性

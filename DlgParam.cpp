@@ -34,26 +34,6 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 	, m_dCuttingSpacing(0)
 	, m_dUpperWidth(0)
 	, m_dLowerWidth(0)
-	, m_dZPitchRatio5(100)
-	, m_dZPitchRatio10(100)
-	, m_dZPitchRatio15(100)
-	, m_dZPitchRatio20(100)
-	, m_dZPitchRatio25(100)
-	, m_dZPitchRatio30(100)
-	, m_dZPitchRatio35(100)
-	, m_dZPitchRatio40(100)
-	, m_dZPitchRatio45(100)
-	, m_dZPitchRatio50(100)
-	, m_dZPitchRatio55(100)
-	, m_dZPitchRatio60(100)
-	, m_dZPitchRatio65(100)
-	, m_dZPitchRatio70(100)
-	, m_dZPitchRatio75(100)
-	, m_dZPitchRatio80(100)
-	, m_dZPitchRatio85(100)
-	, m_dZPitchRatio90(100)
-	, m_dZPitchRatio95(100)
-	, m_dZPitchRatio100(100)
 	, m_iFirstPathCnt(1)
 	, m_iLastPathCnt(1)
 	, m_iEdgeKeepCnt(1)
@@ -69,7 +49,7 @@ CDlgParam::CDlgParam(CWnd* pParent /*=nullptr*/)
 
 	ReadINI();
 
-	SetZPitchRatio();
+	/*SetZPitchRatio();*/
 }
 
 CDlgParam::~CDlgParam()
@@ -85,51 +65,35 @@ void CDlgParam::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_UPPER_WIDTH, m_dUpperWidth);
 	DDX_Text(pDX, IDC_EDIT_LOWER_WIDTH, m_dLowerWidth);
 
-	
+	int iZPitchCtrlID[] = 
+	{
+		IDC_EDIT_Z_PITCH_RATIO_5,
+		IDC_EDIT_Z_PITCH_RATIO_10,
+		IDC_EDIT_Z_PITCH_RATIO_15,
+		IDC_EDIT_Z_PITCH_RATIO_20,
+		IDC_EDIT_Z_PITCH_RATIO_25,
+		IDC_EDIT_Z_PITCH_RATIO_30,
+		IDC_EDIT_Z_PITCH_RATIO_35,
+		IDC_EDIT_Z_PITCH_RATIO_40,
+		IDC_EDIT_Z_PITCH_RATIO_455,  
+		IDC_EDIT_Z_PITCH_RATIO_50,
+		IDC_EDIT_Z_PITCH_RATIO_55,
+		IDC_EDIT_Z_PITCH_RATIO_60,
+		IDC_EDIT_Z_PITCH_RATIO_65,
+		IDC_EDIT_Z_PITCH_RATIO_70,
+		IDC_EDIT_Z_PITCH_RATIO_75,
+		IDC_EDIT_Z_PITCH_RATIO_80,
+		IDC_EDIT_Z_PITCH_RATIO_85,
+		IDC_EDIT_Z_PITCH_RATIO_90,
+		IDC_EDIT_Z_PITCH_RATIO_95,
+		IDC_EDIT_Z_PITCH_RATIO_100
+	};
 
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_5, m_ayZPitchRatio[0]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_10, m_ayZPitchRatio[1]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_15, m_ayZPitchRatio[2]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_20, m_ayZPitchRatio[3]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_25, m_ayZPitchRatio[4]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_30, m_ayZPitchRatio[5]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_35, m_ayZPitchRatio[6]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_40, m_ayZPitchRatio[7]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_455, m_ayZPitchRatio[8]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_50, m_ayZPitchRatio[9]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_55, m_ayZPitchRatio[10]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_60, m_ayZPitchRatio[11]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_65, m_ayZPitchRatio[12]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_70, m_ayZPitchRatio[13]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_75, m_ayZPitchRatio[14]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_80, m_ayZPitchRatio[15]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_85, m_ayZPitchRatio[16]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_90, m_ayZPitchRatio[17]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_95, m_ayZPitchRatio[18]);
-	DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_100, m_ayZPitchRatio[19]);
-
-
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_5, m_dZPitchRatio5);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_10, m_dZPitchRatio10);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_15, m_dZPitchRatio15);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_20, m_dZPitchRatio20);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_25, m_dZPitchRatio25);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_30, m_dZPitchRatio30);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_35, m_dZPitchRatio35);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_40, m_dZPitchRatio40);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_455, m_dZPitchRatio45);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_50, m_dZPitchRatio50);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_55, m_dZPitchRatio55);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_60, m_dZPitchRatio60);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_65, m_dZPitchRatio65);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_70, m_dZPitchRatio70);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_75, m_dZPitchRatio75);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_80, m_dZPitchRatio80);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_85, m_dZPitchRatio85);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_90, m_dZPitchRatio90);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_95, m_dZPitchRatio95);
-	//DDX_Text(pDX, IDC_EDIT_Z_PITCH_RATIO_100, m_dZPitchRatio100);
-
+	for (int i = 0; i < NUM_Z_PITCH_RATIOS; i++)
+	{
+		DDX_Text(pDX, iZPitchCtrlID[i], m_ayZPitchRatio[i]);
+		DDV_MinMaxDouble(pDX, m_ayZPitchRatio[i], 1.0, 100.0); 
+	}
 
 	DDX_Text(pDX, IDC_EDIT_FIRST_PATH_CNT, m_iFirstPathCnt);
 	DDX_Text(pDX, IDC_EDIT_LAST_PATH_CNT, m_iLastPathCnt);
@@ -165,7 +129,7 @@ BOOL CDlgParam::OnInitDialog()
 	UpdateData(FALSE);
 
 	// 設定 Z pitch ratio
-	SetZPitchRatio();
+	/*SetZPitchRatio();*/
 
 	CWnd* pPictureCtrl = GetDlgItem(IDC_PICTURE_PAINTINGAREA);
 	CWnd* pGrapthCtrl = GetDlgItem(IDC_PICTURE_INTERSECT_RATIO);
@@ -230,9 +194,6 @@ void CDlgParam::OnBnClickedButtonApply()
 {
 	UpdateData(TRUE);
 
-	// 設定 Z pitch ratio
-	SetZPitchRatio();
-
 	// 參數檢查
 	if(CheckParam())
 	{
@@ -267,25 +228,6 @@ void CDlgParam::D2ISetUp(CPoint dotLT, double dCoorLT_X, double dCoorLT_Y, doubl
 	m_dRatioY = dRatioY;
 }
 
-/**
-* void CDlgParam::D2I(double dCoorX, double dCoorY, CPoint &dotResult)
-*
-* 功能說明:
-* 	將雙精度浮點數座標轉換為整數座標，並儲存到dotResult中。
-*
-* Input:
-* 	double dCoorX: X座標的雙精度浮點數。
-* 	double dCoorY: Y座標的雙精度浮點數。
-* 	CPoint &dotResult: 用於儲存轉換後的整數座標的CPoint對象。
-*
-* Output:
-* 	無
-*
-* Remark:
-* 	1. 根據比例將浮點數座標轉換為對應的整數座標。
-* 	2. 轉換後的X座標加上左上角的X偏移量。
-* 	3. 轉換後的Y座標減去左上角的Y偏移量（因為Y軸方向相反）。
-*/
 void CDlgParam::D2I(double dCoorX, double dCoorY, CPoint &dotResult)
 {
 	double dX = (dCoorX - m_dCoorLT_X) * m_dRatioX;
@@ -304,24 +246,6 @@ double CDlgParam::GetCutLayerWidth(double dCoorZ)
 	return dCutLength;
 }
 
-/**
-* bool CDlgParam::IsDoubleEqual(double d1, double d2)
-*
-* 功能說明:
-* 	比較兩個雙精度浮點數是否在允許的誤差範圍內相等。
-*
-* Input:
-* 	double d1: 第一個浮點數。
-* 	double d2: 第二個浮點數。
-*
-* Output:
-* 	bool: 如果兩個浮點數相等，返回true；否則返回false。
-*
-* Remark:
-* 	1. 計算允許的誤差範圍，取決於m_iDigits。
-* 	2. 計算兩個浮點數之差，並檢查其是否在允許的誤差範圍內。
-* 	3. 使用fabs函數來取絕對值。
-*/
 bool CDlgParam::IsDoubleEqual (double d1,double d2)
 {
 	bool bEqual = true;
@@ -343,21 +267,6 @@ void CDlgParam::OnClose()
 	CDialogEx::OnClose();
 }
 
-
-/**
- * GenLayerCutPath - 生成指定層的切割路徑
- *
- * @param dCoorZ: 當前Z座標
- * @param dPitch: 切割間距
- * @param ayResult: 存放結果的陣列
- * @param iMaxSize: 結果陣列的最大尺寸
- *
- * @return 生成的切割道數
- *
- * 此函數根據給定的Z座標和切割間距生成切割層的路徑。它首先計算需要的切割道數，
- * 根據道數和切割寬度進行特例處理。如果寬度與上一層相等，會記錄初始大小。
- * 函數會根據計算結果更新每個切割點的位置，並保存切割路徑到文件。
- */
 int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], int iMaxSize)
 {
 	double dTolerance = pow(10, -m_iDigits);
@@ -427,18 +336,6 @@ int CDlgParam::GenLayerCutPath(double dCoorZ, double dPitch, double ayResult[], 
 	return iArraySize;
 }
 
-/**
- * GenIntersectLayerCutPath - 生成交錯層的切割路徑
- *
- * @param ayResult: 存放結果的陣列
- * @param iMaxSize: 結果陣列的最大尺寸
- *
- * @return 生成的切割道數
- *
- * 此函數根據最後一次切割的Z座標生成交錯層的切割路徑。它首先計算不交錯部分的切割道數，
- * 根據道數和切割寬度進行特例處理。接著計算交錯部分的切割道數，並調整交錯的間距。
- * 函數會根據計算結果更新每個切割點的位置，並保存切割路徑到文件。
- */
 int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 {
 	double dCutLength = GetCutLayerWidth(m_dLastCoorZ);		// 切口寬度
@@ -481,7 +378,6 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 			}
 		}
 	}
-
 
 	//交錯的部分，切割道間距為 m_dCuttingSpacing * (m_dIntersectRatio + 1)
 	double dNoIntersect, dIntersect;	//無交錯, 交錯的切口寬度
@@ -531,23 +427,6 @@ int CDlgParam::GenIntersectLayerCutPath(double ayResult[], int iMaxSize)
 	return iArraySize;
 }
 
-/**
-* double CDlgParam::GetLayerHeight()
-*
-* 功能說明:
-* 	根據當前的Z深度比例計算層的高度，並返回對應的高度值。
-*
-* Input:
-* 	無
-*
-* Output:
-* 	double: 返回計算出的層高度。
-*
-* Remark:
-* 	1. 計算當前Z深度相對於總深度的百分比，並根據百分比取整至最接近的5的倍數。
-* 	2. 根據計算出的百分比返回相應比例的層高度。
-* 	3. 使用多個比例參數來調整不同深度下的層高度。
-*/
 double CDlgParam::GetLayerHeight()
 {
 	int iPercentage = int((m_dLastCoorZ / m_dZDepth) * 100.0);
@@ -559,26 +438,7 @@ double CDlgParam::GetLayerHeight()
 	if (iIndex >= 0 && iIndex < sizeof(m_ayZPitchRatio) / sizeof(m_ayZPitchRatio[0]))
 		return m_dLayerHeight * (m_ayZPitchRatio[iIndex] / 100.0);
 	else // 如果索引超出範圍，使用最後一個比例
-		return m_dLayerHeight * (m_dZPitchRatio100 / 100.0);
-}
-
-void CDlgParam::SetZPitchRatio()
-{
-	// 初始化 m_dZPitchRatio 數組
-	double dZPitchRatios[] = 
-	{
-		m_dZPitchRatio5, m_dZPitchRatio10, m_dZPitchRatio15, m_dZPitchRatio20,
-		m_dZPitchRatio25, m_dZPitchRatio30, m_dZPitchRatio35, m_dZPitchRatio40,
-		m_dZPitchRatio45, m_dZPitchRatio50, m_dZPitchRatio55, m_dZPitchRatio60,
-		m_dZPitchRatio65, m_dZPitchRatio70, m_dZPitchRatio75, m_dZPitchRatio80,
-		m_dZPitchRatio85, m_dZPitchRatio90, m_dZPitchRatio95, m_dZPitchRatio100
-	};
-
-	// 將臨時數組的值賦值給成員數組
-	for (int i = 0; i < NUM_Z_PITCH_RATIOS; ++i) 
-	{
-		m_ayZPitchRatio[i] = dZPitchRatios[i];
-	}
+		return m_dLayerHeight * (m_ayZPitchRatio[NUM_Z_PITCH_RATIOS - 1] / 100.0);
 }
 
 void CDlgParam::WriteINI()
@@ -622,64 +482,64 @@ void CDlgParam::WriteINI()
 	strValue.Format(_T("%d"), m_iLastPathCnt);
 	WritePrivateProfileString(_T("ENV"), _T("LastPathCnt"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio5);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[0]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio5"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio10);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[1]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio10"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio15);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[2]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio15"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio20);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[3]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio20"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio25);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[4]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio25"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio30);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[5]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio30"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio35);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[6]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio35"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio40);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[7]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio40"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio45);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[8]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio45"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio50);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[9]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio50"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio55);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[10]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio55"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio60);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[11]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio60"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio65);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[12]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio65"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio70);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[13]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio70"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio75);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[14]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio75"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio80);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[15]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio80"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio85);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[16]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio85"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio90);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[17]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio90"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio95);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[18]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio95"), strValue, strINIPath);
 
-	strValue.Format(_T("%f"), m_dZPitchRatio100);
+	strValue.Format(_T("%f"), m_ayZPitchRatio[19]);
 	WritePrivateProfileString(_T("ENV"), _T("ZPitchRatio100"), strValue, strINIPath);
 
 	strValue.Format(_T("%f"), m_dIntersectRatio);
@@ -730,64 +590,64 @@ void CDlgParam::ReadINI()
 	m_iLastPathCnt = _ttoi(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio5"), _T("100"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio5 = _tstof(szBuf);
+	m_ayZPitchRatio[0] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio10"), _T("100"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio10 = _tstof(szBuf);
+	m_ayZPitchRatio[1] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio15"), _T("100"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio15 = _tstof(szBuf);
+	m_ayZPitchRatio[2] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio20"), _T("95"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio20 = _tstof(szBuf);
+	m_ayZPitchRatio[3] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio25"), _T("95"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio25 = _tstof(szBuf);
+	m_ayZPitchRatio[4] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio30"), _T("90"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio30 = _tstof(szBuf);
+	m_ayZPitchRatio[5] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio35"), _T("90"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio35 = _tstof(szBuf);
+	m_ayZPitchRatio[6] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio40"), _T("85"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio40 = _tstof(szBuf);
+	m_ayZPitchRatio[7] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio45"), _T("85"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio45 = _tstof(szBuf);
+	m_ayZPitchRatio[8] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio50"), _T("80"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio50 = _tstof(szBuf);
+	m_ayZPitchRatio[9] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio55"), _T("80"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio55 = _tstof(szBuf);
+	m_ayZPitchRatio[10] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio60"), _T("70"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio60 = _tstof(szBuf);
+	m_ayZPitchRatio[11] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio65"), _T("70"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio65 = _tstof(szBuf);
+	m_ayZPitchRatio[12] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio70"), _T("60"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio70 = _tstof(szBuf);
+	m_ayZPitchRatio[13] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio75"), _T("60"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio75 = _tstof(szBuf);
+	m_ayZPitchRatio[14] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio80"), _T("50"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio80 = _tstof(szBuf);
+	m_ayZPitchRatio[15] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio85"), _T("50"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio85 = _tstof(szBuf);
+	m_ayZPitchRatio[16] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio90"), _T("40"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio90 = _tstof(szBuf);
+	m_ayZPitchRatio[17] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio95"), _T("40"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio95 = _tstof(szBuf);
+	m_ayZPitchRatio[18] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("ZPitchRatio100"), _T("30"), szBuf, _countof(szBuf), strINIPath);
-	m_dZPitchRatio100 = _tstof(szBuf);
+	m_ayZPitchRatio[19] = _tstof(szBuf);
 
 	GetPrivateProfileString(_T("ENV"), _T("IntersectRatio"), _T("0"), szBuf, _countof(szBuf), strINIPath);
 	m_dIntersectRatio = _tstof(szBuf);
@@ -991,15 +851,6 @@ void CDlgParam::DrawGridLines(CDC* pCtrlDC)
 	pCtrlDC->SelectObject(pOldPen);
 }
 
-/**
- * DrawCutPath - 繪製切割路徑
- *
- * @param pCtrlDC: 繪圖設備上下文指針
- *
- * 此函數在給定的繪圖設備上下文中繪製切割路徑。根據當前切割路徑的狀態選擇不同顏色的筆，
- * 並在指定位置繪製圓點。函數會根據起始點和終點分別使用不同顏色，並在一般點使用藍色。
- * 繪製完後，函數會關閉文件並恢復原來的畫筆。
- */
 void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 {
 	CPen penBlue(PS_SOLID, 5, RGB(0, 0, 255));		// 藍色筆
@@ -1054,7 +905,6 @@ void CDlgParam::DrawCutPath(CDC* pCtrlDC)
 
 				
 			}
-			//SaveCutPathFile(-dCoorZ);// 輸出文字檔案
 		}
 		else 
 		{
@@ -1081,40 +931,18 @@ CDlgParam* CDlgParam::operator =(const CDlgParam &DlgParam)
 	m_iLastPathCnt = DlgParam.m_iLastPathCnt;
 	m_iEdgeKeepCnt = DlgParam.m_iEdgeKeepCnt;
 	m_iDigits = DlgParam.m_iDigits;
-	m_dZPitchRatio5 = DlgParam.m_dZPitchRatio5;
-	m_dZPitchRatio10 = DlgParam.m_dZPitchRatio10;
-	m_dZPitchRatio15 = DlgParam.m_dZPitchRatio15;
-	m_dZPitchRatio20 = DlgParam.m_dZPitchRatio20;
-	m_dZPitchRatio25 = DlgParam.m_dZPitchRatio25;
-	m_dZPitchRatio30 = DlgParam.m_dZPitchRatio30;
-	m_dZPitchRatio35 = DlgParam.m_dZPitchRatio35;
-	m_dZPitchRatio40 = DlgParam.m_dZPitchRatio40;
-	m_dZPitchRatio45 = DlgParam.m_dZPitchRatio45;
-	m_dZPitchRatio50 = DlgParam.m_dZPitchRatio50;
-	m_dZPitchRatio55 = DlgParam.m_dZPitchRatio55;
-	m_dZPitchRatio60 = DlgParam.m_dZPitchRatio60;
-	m_dZPitchRatio65 = DlgParam.m_dZPitchRatio65;
-	m_dZPitchRatio70 = DlgParam.m_dZPitchRatio70;
-	m_dZPitchRatio75 = DlgParam.m_dZPitchRatio75;
-	m_dZPitchRatio80 = DlgParam.m_dZPitchRatio80;
-	m_dZPitchRatio85 = DlgParam.m_dZPitchRatio85;
-	m_dZPitchRatio90 = DlgParam.m_dZPitchRatio90;
-	m_dZPitchRatio95 = DlgParam.m_dZPitchRatio95;
-	m_dZPitchRatio100 = DlgParam.m_dZPitchRatio100;
 	m_dIntersectRatio = DlgParam.m_dIntersectRatio;
 	m_iZThrehold = DlgParam.m_iZThrehold;
+
+	for (int i = 0; i < NUM_Z_PITCH_RATIOS; i++)
+	{
+		m_ayZPitchRatio[i] = DlgParam.m_ayZPitchRatio[i];
+	}
+	
 	
 	return this;
 }
 
-/**
- * SaveCutPathFile - 保存切割路徑文件
- *
- * @param dRatio: 當前高度的比例
- *
- * 此函數將當前高度的比例和切割間距寫入對應的文件。首先，將比例寫入 `m_fileIntersectRatio` 文件，
- * 然後將切割間距寫入 `m_fileCutPitch` 文件。每次寫入都會將文件指針移動到文件末尾。
- */
 void CDlgParam::SaveCutPathFile(double dRatio)
 {
 	CString str;
@@ -1195,19 +1023,6 @@ void CDlgParam::ReverseArray(double * arr, int iSize)
 	}
 }
 
-/**
- * GetFirstCutPoint - 獲取第一個切割點
- *
- * @param pCoorX: 用於存儲X坐標的指針
- * @param pCoorZ: 用於存儲Z坐標的指針
- *
- * @return 返回布爾值表示是否成功獲取切割點
- *
- * 此函數初始化一些狀態變數，並根據是否需要交錯來生成切割路徑數據。
- * 如果需要交錯，調用 `GenIntersectLayerCutPath` 來生成交錯層的切割路徑；
- * 否則，調用 `GenLayerCutPath` 來生成普通層的切割路徑。
- * 最後將第一個切割點的坐標存儲在 `pCoorX` 和 `pCoorZ` 中。
- */
 bool CDlgParam::GetFirstCutPoint (double* pCoorX, double* pCoorZ)
 {
 	m_bReverse = false;
