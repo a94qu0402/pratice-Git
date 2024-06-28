@@ -62,7 +62,7 @@ __declspec(dllexport) void PASCAL SetParametersDialog()
 
 	g_DlgParam = dlg;//test
 
-	ChangeResource(FALSE);
+	ChangeResource(TRUE);
 }
 
 __declspec(dllexport) bool PASCAL GetFirstCutPath(double* pCoorX, double* pCoorZ)
