@@ -58,7 +58,7 @@ __declspec(dllexport) void PASCAL SetParametersDialog()
 
 	ChangeResource(TRUE);
 
-	INT_PTR nResponse = dlg.DoModal();
+	INT_PTR nResponse = dlg.DoModal();	 // Branch2 change
 
 	g_DlgParam = dlg;
 
