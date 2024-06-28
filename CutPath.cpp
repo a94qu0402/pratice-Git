@@ -72,7 +72,7 @@ __declspec(dllexport) bool PASCAL GetFirstCutPath(double* pCoorX, double* pCoorZ
 
 __declspec(dllexport) bool PASCAL GetNextCutPath(double* pCoorX, double* pCoorZ)
 {
-	return g_DlgParam.GetNextCutPoint (pCoorX, pCoorZ);
+	return g_DlgParam.GetNextCutPoint (pCoorX, pCoorZ);//res
 }
 //
 //TODO:  如果這個 DLL 是動態地對 MFC DLL 連結，
