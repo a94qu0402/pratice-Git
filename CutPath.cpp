@@ -61,6 +61,8 @@ __declspec(dllexport) void PASCAL SetParametersDialog()
 	INT_PTR nResponse = dlg.DoModal();
 
 	g_DlgParam = dlg;
+	
+	int i = 6;
 
 	ChangeResource(TRUE);
 }
