@@ -23,6 +23,6 @@ public:
 public:
 	virtual BOOL InitInstance();
 
-	CDlgParam m_dlgParam;//teset
+	CDlgParam m_dlgParam;
 	DECLARE_MESSAGE_MAP()
 };
