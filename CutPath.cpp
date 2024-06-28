@@ -56,11 +56,11 @@ __declspec(dllexport) void PASCAL SetParametersDialog()
 {
 	CDlgParam dlg;
 
-	/*ChangeResource(TRUE);
+	ChangeResource(TRUE);
 
 	INT_PTR nResponse = dlg.DoModal();
 
-	g_DlgParam = dlg;*/
+	g_DlgParam = dlg;
 
 	ChangeResource(FALSE);
 }
