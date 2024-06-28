@@ -7,7 +7,7 @@
 	#error "include 'pch.h' before including this file for PCH"
 #endif
 
-#include "resource.h"		// 主要符號
+#include "resource.h"		
 #include "DlgParam.h"
 
 // CCutPathApp
