@@ -62,6 +62,8 @@ __declspec(dllexport) void PASCAL SetParametersDialog()
 
 	g_DlgParam = dlg;
 
+	int i = 5;
+
 	ChangeResource(TRUE);
 }
 
