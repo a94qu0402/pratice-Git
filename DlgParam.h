@@ -134,5 +134,6 @@ public:
 
 	CString SetFilePath(const CString& filename);			// 得到檔案路徑
 	void OpenFile(CFile& file, const CString& filename);	// 打開檔案
+	void CloseFile(CFile& file);							// 關閉檔案
 				
 };

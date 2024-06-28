@@ -428,7 +428,9 @@ double CDlgParam::GetLayerHeight()
 	int iIndex = iPercentage / 5;
 
 	if (iIndex >= 0 && iIndex < sizeof(m_ayZPitchRatio) / sizeof(m_ayZPitchRatio[0]))
+	{
 		return m_dLayerHeight * (m_ayZPitchRatio[iIndex] / 100.0);
+	}
 	else // 如果索引超出範圍，使用最後一個比例
 		return m_dLayerHeight * (m_ayZPitchRatio[NUM_Z_PITCH_RATIOS - 1] / 100.0);
 }
@@ -946,7 +948,7 @@ void CDlgParam::SaveCutPathFile(double dRatio)
 	m_fileIntersectRatio.Write(str, str.GetLength() * sizeof(TCHAR));
 
 	// 寫入每個高度的 pitch
-	str.Format(_T("%.3f \n"), m_dPitch);
+	str.Format(_T("%.3f \n"), m_dLayerHeight);
 
 	m_fileCutPitch.SeekToEnd();
 
@@ -958,17 +960,11 @@ void CDlgParam::OpenCutPathFile()
 	CString strFilename = SetFilePath(_T("Intersect_Ratio.txt"));
 	CString strFilename2 = SetFilePath(_T("CuttingSpacing.txt"));
 
-	// 如果文件已經打開，則先關閉文件
-	if (m_fileIntersectRatio.m_hFile != CFile::hFileNull)
-	{
-		m_fileIntersectRatio.Close();
-	}
+	// 關閉文件
+	CloseFile(m_fileIntersectRatio);
+	CloseFile(m_fileCutPitch);
 
-	if (m_fileCutPitch.m_hFile != CFile::hFileNull)
-	{
-		m_fileCutPitch.Close();
-	}
-
+	// 打開文件
 	OpenFile(m_fileIntersectRatio, strFilename);
 	OpenFile(m_fileCutPitch, strFilename2);
 }
@@ -990,6 +986,14 @@ void CDlgParam::OpenFile(CFile& file,const  CString& filename)
 	if (!file.Open(filename, CFile::modeWrite | CFile::modeCreate))
 	{
 		AfxMessageBox(_T("無法開啟文件: ") + filename);
+	}
+}
+
+void CDlgParam::CloseFile(CFile & file)
+{
+	if (file.m_hFile != CFile::hFileNull)
+	{
+		file.Close();
 	}
 }
 
@@ -1063,8 +1067,13 @@ bool CDlgParam::GetNextCutPoint (double* pCoorX, double* pCoorZ)
 
 			if (m_dLastCoorZ > m_dZDepth && !IsDoubleEqual(m_dLastCoorZ, m_dZDepth))	// 已經到底了，結束判斷
 			{
-				m_fileIntersectRatio.Close();
-				m_fileCutPitch.Close();
+				CString strFilename = SetFilePath(_T("Intersect_Ratio.txt"));
+				CString strFilename2 = SetFilePath(_T("CuttingSpacing.txt"));
+
+				// 關閉文件
+				CloseFile(m_fileIntersectRatio);
+				CloseFile(m_fileCutPitch);
+
 				return false;
 			}
 
